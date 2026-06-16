@@ -13,9 +13,9 @@
       text-align: center;
     }
 
-    .game-box {
+    .container {
       width: 90%;
-      max-width: 500px;
+      max-width: 520px;
       margin: 30px auto;
       padding: 20px;
       background: #1f2937;
@@ -33,13 +33,22 @@
       border-radius: 12px;
     }
 
+    input {
+      width: 85%;
+      padding: 12px;
+      margin: 6px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+    }
+
     button {
       background: #2563eb;
       color: white;
       border: none;
       padding: 12px 18px;
       border-radius: 10px;
-      font-size: 16px;
+      font-size: 15px;
       margin: 5px;
     }
 
@@ -47,79 +56,269 @@
       background: #1d4ed8;
       transform: scale(0.97);
     }
+
+    .logout {
+      background: #dc2626;
+    }
+
+    #gameBox {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-  <div class="game-box">
+  <div class="container">
     <h1>Web RPG</h1>
 
-    <div class="box">
-      <p>레벨: <span id="level">1</span></p>
-      <p>골드: <span id="gold">0</span></p>
-      <p>보석: <span id="gem">0</span></p>
-      <p>공격력: <span id="attack">1</span></p>
+    <div id="loginBox" class="box">
+      <h2>로그인</h2>
+
+      <input id="email" type="email" placeholder="이메일">
+      <input id="password" type="password" placeholder="비밀번호">
+
+      <br>
+
+      <button onclick="signUp()">회원가입</button>
+      <button onclick="loginEmail()">이메일 로그인</button>
+      <button onclick="loginGoogle()">Google 로그인</button>
+
+      <p id="loginMessage">로그인하면 게임 데이터가 Firebase에 저장됩니다.</p>
     </div>
 
-    <div class="box">
-      <h2>슬라임</h2>
-      <p>체력: <span id="monsterHp">10</span></p>
-      <button onclick="attackMonster()">공격하기</button>
-    </div>
+    <div id="gameBox">
+      <div class="box">
+        <p>닉네임: <span id="nickname">플레이어</span></p>
+        <p>칭호: <span id="title">초보자</span></p>
+        <p>레벨: <span id="level">1</span></p>
+        <p>골드: <span id="gold">0</span></p>
+        <p>보석: <span id="gem">0</span></p>
+        <p>공격력: <span id="attack">1</span></p>
+      </div>
 
-    <div class="box">
-      <h2>강화</h2>
-      <button onclick="upgradeAttack()">공격력 강화 10골드</button>
-    </div>
+      <div class="box">
+        <h2>슬라임</h2>
+        <p>체력: <span id="monsterHp">10</span></p>
+        <button onclick="attackMonster()">공격하기</button>
+      </div>
 
-    <div class="box">
-      <p id="message">게임을 시작하세요!</p>
+      <div class="box">
+        <h2>강화</h2>
+        <button onclick="upgradeAttack()">공격력 강화 10골드</button>
+      </div>
+
+      <div class="box">
+        <button class="logout" onclick="logout()">로그아웃</button>
+        <p id="message">게임을 시작하세요!</p>
+      </div>
     </div>
   </div>
 
-  <script>
-    let level = 1;
-    let gold = 0;
-    let gem = 0;
-    let attack = 1;
-    let monsterHp = 10;
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+    // 여기 firebaseConfig 부분을 네가 복사한 코드로 바꾸면 됨
+    const firebaseConfig = {
+  apiKey: "AIzaSyD2bGpScCTe-ltMmDz6mPm1nGIU4ro8ksc",
+  authDomain: "web-rpg-game-5e39d.firebaseapp.com",
+  projectId: "web-rpg-game-5e39d",
+  storageBucket: "web-rpg-game-5e39d.firebasestorage.app",
+  messagingSenderId: "573615012828",
+  appId: "1:573615012828:web:f1bc4d5e206d4553b6ed19"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    let currentUser = null;
+
+    let gameData = {
+      nickname: "플레이어",
+      title: "초보자",
+      level: 1,
+      gold: 0,
+      gem: 0,
+      attack: 1,
+      monsterHp: 10
+    };
 
     function updateUI() {
-      document.getElementById("level").innerText = level;
-      document.getElementById("gold").innerText = gold;
-      document.getElementById("gem").innerText = gem;
-      document.getElementById("attack").innerText = attack;
-      document.getElementById("monsterHp").innerText = monsterHp;
+      document.getElementById("nickname").innerText = gameData.nickname;
+      document.getElementById("title").innerText = gameData.title;
+      document.getElementById("level").innerText = gameData.level;
+      document.getElementById("gold").innerText = gameData.gold;
+      document.getElementById("gem").innerText = gameData.gem;
+      document.getElementById("attack").innerText = gameData.attack;
+      document.getElementById("monsterHp").innerText = gameData.monsterHp;
     }
 
-    function attackMonster() {
-      monsterHp -= attack;
+    function showMessage(text) {
+      document.getElementById("message").innerText = text;
+    }
 
-      if (monsterHp <= 0) {
-        gold += 5;
-        level += 1;
-        monsterHp = 10 + level * 5;
-        document.getElementById("message").innerText = "슬라임을 처치했습니다! 골드 +5";
+    function showLoginMessage(text) {
+      document.getElementById("loginMessage").innerText = text;
+    }
+
+    async function saveUserData() {
+      if (!currentUser) return;
+
+      const userRef = doc(db, "users", currentUser.uid);
+
+      await setDoc(userRef, {
+        nickname: gameData.nickname,
+        title: gameData.title,
+        level: gameData.level,
+        gold: gameData.gold,
+        gem: gameData.gem,
+        attack: gameData.attack,
+        monsterHp: gameData.monsterHp,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    }
+
+    async function loadUserData(user) {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+
+        gameData = {
+          nickname: data.nickname || user.displayName || "플레이어",
+          title: data.title || "초보자",
+          level: data.level || 1,
+          gold: data.gold || 0,
+          gem: data.gem || 0,
+          attack: data.attack || 1,
+          monsterHp: data.monsterHp || 10
+        };
       } else {
-        document.getElementById("message").innerText = "슬라임을 공격했습니다!";
+        gameData = {
+          nickname: user.displayName || "플레이어",
+          title: "초보자",
+          level: 1,
+          gold: 0,
+          gem: 0,
+          attack: 1,
+          monsterHp: 10
+        };
+
+        await setDoc(userRef, {
+          ...gameData,
+          email: user.email || "",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
       }
 
       updateUI();
     }
 
-    function upgradeAttack() {
-      if (gold >= 10) {
-        gold -= 10;
-        attack += 1;
-        document.getElementById("message").innerText = "공격력이 증가했습니다!";
+    window.signUp = async function() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        showLoginMessage("회원가입 성공!");
+      } catch (error) {
+        showLoginMessage("회원가입 실패: " + error.message);
+      }
+    };
+
+    window.loginEmail = async function() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showLoginMessage("로그인 성공!");
+      } catch (error) {
+        showLoginMessage("로그인 실패: " + error.message);
+      }
+    };
+
+    window.loginGoogle = async function() {
+      try {
+        await signInWithPopup(auth, googleProvider);
+        showLoginMessage("Google 로그인 성공!");
+      } catch (error) {
+        showLoginMessage("Google 로그인 실패: " + error.message);
+      }
+    };
+
+    window.logout = async function() {
+      await signOut(auth);
+    };
+
+    window.attackMonster = async function() {
+      gameData.monsterHp -= gameData.attack;
+
+      if (gameData.monsterHp <= 0) {
+        gameData.gold += 5;
+        gameData.level += 1;
+        gameData.monsterHp = 10 + gameData.level * 5;
+
+        showMessage("슬라임을 처치했습니다! 골드 +5");
       } else {
-        document.getElementById("message").innerText = "골드가 부족합니다.";
+        showMessage("슬라임을 공격했습니다!");
       }
 
       updateUI();
-    }
+      await saveUserData();
+    };
 
-    updateUI();
+    window.upgradeAttack = async function() {
+      if (gameData.gold >= 10) {
+        gameData.gold -= 10;
+        gameData.attack += 1;
+
+        showMessage("공격력이 증가했습니다!");
+      } else {
+        showMessage("골드가 부족합니다.");
+      }
+
+      updateUI();
+      await saveUserData();
+    };
+
+    onAuthStateChanged(auth, async function(user) {
+      if (user) {
+        currentUser = user;
+
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("gameBox").style.display = "block";
+
+        await loadUserData(user);
+        showMessage("로그인 완료! 게임 데이터를 불러왔습니다.");
+      } else {
+        currentUser = null;
+
+        document.getElementById("loginBox").style.display = "block";
+        document.getElementById("gameBox").style.display = "none";
+      }
+    });
   </script>
 
 </body>
