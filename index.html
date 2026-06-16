@@ -376,7 +376,7 @@
 
   <div class="container">
     <h1>Web RPG</h1>
-    <p class="small-text">버전: <span id="gameVersion">1.0.4</span></p>
+    <p class="small-text">버전: <span id="gameVersion">1.0.5</span></p>
 
     <div id="loginBox" class="box">
       <h2>로그인</h2>
@@ -438,6 +438,7 @@
         <p>체력: <span id="monsterHp">10</span></p>
         <p class="small-text">드랍 결과: <span id="dropResult">아직 드랍 판정이 없습니다.</span></p>
         <button onclick="attackMonster()">공격하기</button>
+        <button class="equip-btn" onclick="resetCurrentMonster()">현재 몬스터 새로고침</button>
       </div>
 
       <div id="upgradeSection" class="box">
@@ -611,7 +612,7 @@
     let currentUser = null;
     let adminTarget = null;
 
-    const GAME_VERSION = "1.0.4";
+    const GAME_VERSION = "1.0.5";
 
     const titleShopItems = [
       { name: "슬라임 사냥꾼", cost: 30, desc: "슬라임을 잡는 모험가에게 어울리는 칭호" },
@@ -2391,61 +2392,94 @@
     };
 
     window.attackMonster = async function() {
-      const damage = getTotalAttack();
-      const defeatedMonsterName = getMonsterName();
-      const boss = isBossFloor();
-      const currentFloor = Number(gameData.floor || 1);
-
-      gameData.monsterHp -= damage;
-
-      if (gameData.monsterHp <= 0) {
-        const goldReward = boss ? 50 + currentFloor * 5 : 5 + currentFloor;
-        const xpReward = boss ? 50 + currentFloor * 3 : 10 + currentFloor;
-        const gemReward = boss ? 5 : 0;
-
-        gameData.gold += goldReward;
-        gameData.xp += xpReward;
-        gameData.gem += gemReward;
-
-        const droppedItem = rollDropItem(boss);
-
-        let rewardText = `${defeatedMonsterName} 처치! 골드 +${goldReward}, XP +${xpReward}`;
-
-        if (gemReward > 0) {
-          rewardText += `, 보석 +${gemReward}`;
-          addMail("보스 클리어 보상", `${currentFloor}층 보스를 처치하여 보석 ${gemReward}개를 받았습니다.`);
+      try {
+        if (!gameData) {
+          showMessage("게임 데이터를 불러오는 중입니다. 잠시 후 다시 눌러주세요.");
+          return;
         }
 
-        if (droppedItem) {
-          gameData.inventory.unshift(droppedItem);
-          selectedInventoryItemId = droppedItem.instanceId;
-          inventoryFilter = "all";
-          addMail("아이템 획득", `${getItemDisplayName(droppedItem)}을 획득했습니다.`);
-          rewardText += `, 아이템 [${getItemDisplayName(droppedItem)}] 획득`;
-        } else {
-          rewardText += ", 아이템 드랍 실패";
+        const damage = Math.max(1, Number(getTotalAttack()) || 1);
+        const defeatedMonsterName = getMonsterName();
+        const boss = isBossFloor();
+        const currentFloor = Number(gameData.floor || 1);
+
+        if (!Number.isFinite(Number(gameData.monsterHp)) || Number(gameData.monsterHp) <= 0) {
+          gameData.monsterHp = getMonsterMaxHp();
         }
 
-        moveNextFloor();
+        gameData.monsterHp = Number(gameData.monsterHp) - damage;
 
-        showMessage(rewardText + ` / ${gameData.floor}층으로 이동했습니다.`);
+        if (gameData.monsterHp <= 0) {
+          const goldReward = boss ? 50 + currentFloor * 5 : 5 + currentFloor;
+          const xpReward = boss ? 50 + currentFloor * 3 : 10 + currentFloor;
+          const gemReward = boss ? 5 : 0;
 
-        if (droppedItem) {
-          setTimeout(() => {
-            updateUI();
-            goSection("inventorySection");
-          }, 250);
+          gameData.gold = Number(gameData.gold || 0) + goldReward;
+          gameData.xp = Number(gameData.xp || 0) + xpReward;
+          gameData.gem = Number(gameData.gem || 0) + gemReward;
+
+          if (!Array.isArray(gameData.inventory)) {
+            gameData.inventory = [];
+          }
+
+          const droppedItem = rollDropItem(boss);
+
+          let rewardText = `${defeatedMonsterName} 처치! 골드 +${goldReward}, XP +${xpReward}`;
+
+          if (gemReward > 0) {
+            rewardText += `, 보석 +${gemReward}`;
+            addMail("보스 클리어 보상", `${currentFloor}층 보스를 처치하여 보석 ${gemReward}개를 받았습니다.`);
+          }
+
+          if (droppedItem) {
+            gameData.inventory.unshift(droppedItem);
+            selectedInventoryItemId = droppedItem.instanceId;
+            inventoryFilter = "all";
+            addMail("아이템 획득", `${getItemDisplayName(droppedItem)}을 획득했습니다.`);
+            rewardText += `, 아이템 [${getItemDisplayName(droppedItem)}] 획득`;
+          } else {
+            rewardText += ", 아이템 드랍 실패";
+          }
+
+          // 다음 층 이동을 가장 확실하게 처리
+          gameData.floor = currentFloor + 1;
+          gameData.monsterHp = getMonsterMaxHp();
+
+          showMessage(rewardText + ` / ${gameData.floor}층으로 이동했습니다.`);
+
+          checkLevelUp();
+          checkAchievements();
+
+          updateUI();
+          await saveUserData();
+          await loadRankings();
+
+          if (droppedItem) {
+            setTimeout(() => {
+              goSection("inventorySection");
+            }, 250);
+          }
+
+          return;
         }
 
-        checkLevelUp();
-        checkAchievements();
-      } else {
         showMessage(`${defeatedMonsterName}을 공격했습니다! 피해량: ${damage}`);
+        updateUI();
+        await saveUserData();
+      } catch (error) {
+        showMessage("공격 처리 중 오류가 발생했습니다: " + error.message);
       }
+    };
 
+    window.resetCurrentMonster = async function() {
+      if (!gameData) return;
+
+      gameData.monsterHp = getMonsterMaxHp();
+      lastDropResult = "몬스터 체력을 현재 층 기준으로 새로고침했습니다.";
+
+      showMessage("현재 몬스터를 새로고침했습니다.");
       updateUI();
       await saveUserData();
-      await loadRankings();
     };
 
     window.upgradeAttack = async function() {
