@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Web RPG Game</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #111827;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    .game-box {
+      width: 90%;
+      max-width: 500px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #1f2937;
+      border-radius: 15px;
+    }
+
+    h1 {
+      color: #60a5fa;
+    }
+
+    .box {
+      background: #374151;
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 16px;
+      margin: 5px;
+    }
+
+    button:active {
+      background: #1d4ed8;
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-box">
+    <h1>Web RPG</h1>
+
+    <div class="box">
+      <p>레벨: <span id="level">1</span></p>
+      <p>골드: <span id="gold">0</span></p>
+      <p>보석: <span id="gem">0</span></p>
+      <p>공격력: <span id="attack">1</span></p>
+    </div>
+
+    <div class="box">
+      <h2>슬라임</h2>
+      <p>체력: <span id="monsterHp">10</span></p>
+      <button onclick="attackMonster()">공격하기</button>
+    </div>
+
+    <div class="box">
+      <h2>강화</h2>
+      <button onclick="upgradeAttack()">공격력 강화 10골드</button>
+    </div>
+
+    <div class="box">
+      <p id="message">게임을 시작하세요!</p>
+    </div>
+  </div>
+
+  <script>
+    let level = 1;
+    let gold = 0;
+    let gem = 0;
+    let attack = 1;
+    let monsterHp = 10;
+
+    function updateUI() {
+      document.getElementById("level").innerText = level;
+      document.getElementById("gold").innerText = gold;
+      document.getElementById("gem").innerText = gem;
+      document.getElementById("attack").innerText = attack;
+      document.getElementById("monsterHp").innerText = monsterHp;
+    }
+
+    function attackMonster() {
+      monsterHp -= attack;
+
+      if (monsterHp <= 0) {
+        gold += 5;
+        level += 1;
+        monsterHp = 10 + level * 5;
+        document.getElementById("message").innerText = "슬라임을 처치했습니다! 골드 +5";
+      } else {
+        document.getElementById("message").innerText = "슬라임을 공격했습니다!";
+      }
+
+      updateUI();
+    }
+
+    function upgradeAttack() {
+      if (gold >= 10) {
+        gold -= 10;
+        attack += 1;
+        document.getElementById("message").innerText = "공격력이 증가했습니다!";
+      } else {
+        document.getElementById("message").innerText = "골드가 부족합니다.";
+      }
+
+      updateUI();
+    }
+
+    updateUI();
+  </script>
+
+</body>
+</html>
