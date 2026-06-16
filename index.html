@@ -172,6 +172,7 @@
     .item-legendary { border-color: rgba(250, 204, 21, 0.95); }
     .item-mythic { border-color: rgba(34, 211, 238, 0.95); }
     .item-ancient { border-color: rgba(248, 113, 113, 0.95); }
+    .item-developer { border-color: rgba(244, 63, 94, 0.98); box-shadow: 0 0 18px rgba(244, 63, 94, 0.35); }
 
     .boss-text {
       color: #f87171;
@@ -376,7 +377,7 @@
 
   <div class="container">
     <h1>Web RPG</h1>
-    <p class="small-text">버전: <span id="gameVersion">1.0.5</span></p>
+    <p class="small-text">버전: <span id="gameVersion">1.1.0</span></p>
 
     <div id="loginBox" class="box">
       <h2>로그인</h2>
@@ -433,23 +434,24 @@
 
       <div id="battleSection" class="box">
         <h2 id="monsterName">슬라임</h2>
-        <p>층: <span id="floor">1</span>층</p>
+        <p>층: <span id="floor">1</span> / <span id="maxFloor">100000</span>층</p>
         <p id="bossLabel" class="boss-text"></p>
         <p>체력: <span id="monsterHp">10</span></p>
-        <p class="small-text">드랍 결과: <span id="dropResult">아직 드랍 판정이 없습니다.</span></p>
+        <p class="small-text">드랍 결과: <span id="dropResult">아직 검 드랍 판정이 없습니다.</span></p>
+        <p class="small-text">몬스터 체력은 층이 올라갈수록 점점 증가하며, 최대 100000층까지 진행할 수 있습니다. 몬스터 처치 시 검 드랍 판정이 진행됩니다.</p>
         <button onclick="attackMonster()">공격하기</button>
-        <button class="equip-btn" onclick="resetCurrentMonster()">현재 몬스터 새로고침</button>
+        <button class="equip-btn" onclick="resetCurrentMonster()">몬스터 체력 재설정</button>
       </div>
 
       <div id="upgradeSection" class="box">
         <h2>강화</h2>
-        <p class="small-text">기본 공격력 강화는 여기서 하고, 무기 강화는 인벤토리에서 아이템을 선택한 뒤 상세창의 강화 버튼을 누르면 됩니다.</p>
+        <p class="small-text">기본 공격력 강화는 여기서 하고, 검 강화는 인벤토리에서 검을 선택한 뒤 강화 버튼을 누르면 됩니다.</p>
         <button onclick="upgradeAttack()">기본 공격력 강화 10골드</button>
       </div>
 
       <div id="inventorySection" class="box">
         <h2>인벤토리</h2>
-        <p class="small-text">아이템 칸을 눌러 선택하고, 상세창에서 장착/강화/판매를 할 수 있습니다. 모든 몬스터 처치 시 일반 등급 검은 50% 확률로 드랍됩니다. 검이 드랍되면 자동으로 이 선택창에 표시됩니다.</p>
+        <p class="small-text">검 시스템 v2입니다. 기존 검 데이터는 초기화되고, 나무검부터 다시 시작합니다. 관리자 계정은 개발자의 검을 자동으로 받습니다.</p>
 
         <div class="inventory-top">
           <div class="equipment-panel">
@@ -471,6 +473,7 @@
           <button onclick="setInventoryFilter('legendary')">전설</button>
           <button onclick="setInventoryFilter('mythic')">신화</button>
           <button onclick="setInventoryFilter('ancient')">고대</button>
+          <button onclick="setInventoryFilter('developer')">관리자</button>
           <button onclick="sortInventory()">정렬</button>
         </div>
 
@@ -526,7 +529,7 @@
         <p id="adminStatus" class="small-text">관리자 권한 확인 중...</p>
         <p class="small-text">관리자 기능이 작동하려면 Firestore의 내 users 문서에서 isAdmin 값이 true여야 합니다.</p>
 
-        <p class="small-text">이 패널은 isAdmin이 true인 관리자 계정에게만 보입니다.</p>
+        <p class="small-text">이 패널은 isAdmin이 true인 관리자 계정에게만 보입니다. 관리자는 [개발자] 칭호가 자동 지급/장착됩니다.</p>
         <input id="adminTargetId" placeholder="상대방 유저 ID 예: LB-123456">
         <button class="admin-btn" onclick="adminSearchUser()">유저 검색</button>
 
@@ -612,7 +615,9 @@
     let currentUser = null;
     let adminTarget = null;
 
-    const GAME_VERSION = "1.0.5";
+    const GAME_VERSION = "1.1.0";
+    const MAX_FLOOR = 100000;
+    const SWORD_SYSTEM_VERSION = "2.0.0";
 
     const titleShopItems = [
       { name: "슬라임 사냥꾼", cost: 30, desc: "슬라임을 잡는 모험가에게 어울리는 칭호" },
@@ -630,295 +635,24 @@
       { emoji: "🐉", name: "드래곤", cost: 150 }
     ];
 
-    const itemPool = [
-      {
-        id: "wood_sword",
-        name: "나무검",
-        icon: "🗡️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 1,
-        maxAttack: 10,
-        sellGold: 5,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "hard_wood_sword",
-        name: "단단한 나무검",
-        icon: "🪵",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 2,
-        sellGold: 6,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "old_iron_sword",
-        name: "낡은 철검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 2,
-        sellGold: 7,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "training_sword",
-        name: "훈련용 검",
-        icon: "🗡️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 2,
-        sellGold: 6,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "adventurer_sword",
-        name: "모험가의 검",
-        icon: "🗡️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 3,
-        sellGold: 8,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "beginner_sword",
-        name: "초보자의 검",
-        icon: "🗡️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 2,
-        sellGold: 6,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "rusty_sword",
-        name: "녹슨 검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 2,
-        sellGold: 5,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "bronze_sword",
-        name: "청동검",
-        icon: "🟤",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 3,
-        sellGold: 9,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "light_sword_common",
-        name: "가벼운 검",
-        icon: "🗡️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 3,
-        sellGold: 8,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "old_knight_sword",
-        name: "오래된 기사검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 4,
-        sellGold: 10,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "sharp_iron_sword",
-        name: "날카로운 철검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 4,
-        sellGold: 12,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "enhanced_iron_sword",
-        name: "강화 철검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 5,
-        sellGold: 14,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "steel_sword",
-        name: "강철검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 5,
-        sellGold: 15,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "silver_iron_sword",
-        name: "은빛 철검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 6,
-        sellGold: 16,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "battle_sword",
-        name: "전투용 검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 6,
-        sellGold: 18,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "soldier_sword",
-        name: "병사의 검",
-        icon: "🛡️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 6,
-        sellGold: 18,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "knight_order_sword",
-        name: "기사단 검",
-        icon: "🛡️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 7,
-        sellGold: 20,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "mercenary_sword",
-        name: "용병의 검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 7,
-        sellGold: 21,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "guardian_sword",
-        name: "수호자의 검",
-        icon: "🛡️",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 8,
-        sellGold: 24,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "hunter_sword",
-        name: "사냥꾼의 검",
-        icon: "🏹",
-        type: "weapon",
-        rarity: "common",
-        attackBonus: 8,
-        sellGold: 24,
-        dropChance: 2.50,
-        minFloor: 1
-      },
-      {
-        id: "iron_sword",
-        name: "철검",
-        icon: "⚔️",
-        type: "weapon",
-        rarity: "rare",
-        attackBonus: 12,
-        sellGold: 40,
-        dropChance: 20,
-        minFloor: 3
-      },
-      {
-        id: "diamond_sword",
-        name: "다이아검",
-        icon: "💎",
-        type: "weapon",
-        rarity: "epic",
-        attackBonus: 25,
-        sellGold: 90,
-        dropChance: 10,
-        minFloor: 6
-      },
-      {
-        id: "emerald_sword",
-        name: "에메랄드검",
-        icon: "💚",
-        type: "weapon",
-        rarity: "epic",
-        attackBonus: 35,
-        sellGold: 130,
-        dropChance: 7.5,
-        minFloor: 9
-      },
-      {
-        id: "nether_sword",
-        name: "네더검",
-        icon: "🌋",
-        type: "weapon",
-        rarity: "legendary",
-        attackBonus: 50,
-        sellGold: 220,
-        dropChance: 5,
-        minFloor: 13
-      },
-      {
-        id: "light_sword",
-        name: "라이트검",
-        icon: "✨",
-        type: "weapon",
-        rarity: "mythic",
-        attackBonus: 70,
-        sellGold: 350,
-        dropChance: 3.1,
-        minFloor: 18
-      },
-      {
-        id: "red_light_sword",
-        name: "붉은빛검",
-        icon: "🔴",
-        type: "weapon",
-        rarity: "ancient",
-        attackBonus: 100,
-        sellGold: 700,
-        dropChance: 0.1,
-        minFloor: 25
-      }
+    const swordCatalog = [
+      { id: "wood_sword", order: 1, name: "나무검", icon: "🗡️", rarity: "common", damage: 1, maxDamage: 10, growth: 1, sellGold: 5, minFloor: 1, dropWeight: 500 },
+      { id: "iron_sword", order: 2, name: "철검", icon: "⚔️", rarity: "rare", damage: 15, maxDamage: 60, growth: 2, sellGold: 30, minFloor: 5, dropWeight: 250 },
+      { id: "diamond_sword", order: 3, name: "다이아검", icon: "💎", rarity: "epic", damage: 35, maxDamage: 120, growth: 3, sellGold: 80, minFloor: 10, dropWeight: 120 },
+      { id: "emerald_sword", order: 4, name: "에메랄드검", icon: "💚", rarity: "epic", damage: 60, maxDamage: 200, growth: 4, sellGold: 120, minFloor: 15, dropWeight: 90 },
+      { id: "nether_sword", order: 5, name: "네더검", icon: "🌋", rarity: "legendary", damage: 100, maxDamage: 350, growth: 6, sellGold: 220, minFloor: 25, dropWeight: 55 },
+      { id: "light_sword", order: 6, name: "라이트검", icon: "✨", rarity: "mythic", damage: 180, maxDamage: 600, growth: 8, sellGold: 400, minFloor: 40, dropWeight: 30 },
+      { id: "red_light_sword", order: 7, name: "붉은빛검", icon: "🔴", rarity: "ancient", damage: 300, maxDamage: 1000, growth: 12, sellGold: 700, minFloor: 60, dropWeight: 15 },
+      { id: "blood_moon_sword", order: 8, name: "혈월검", icon: "🌕", rarity: "ancient", damage: 500, maxDamage: 1800, growth: 18, sellGold: 1200, minFloor: 80, dropWeight: 8 },
+      { id: "dimension_sword", order: 9, name: "차원검", icon: "🌀", rarity: "mythic", damage: 800, maxDamage: 3000, growth: 28, sellGold: 2000, minFloor: 120, dropWeight: 5 },
+      { id: "void_sword", order: 10, name: "공허검", icon: "⚫", rarity: "ancient", damage: 1200, maxDamage: 5000, growth: 40, sellGold: 3500, minFloor: 180, dropWeight: 3 },
+      { id: "god_sword", order: 11, name: "신의 검", icon: "🌟", rarity: "mythic", damage: 2000, maxDamage: 9000, growth: 70, sellGold: 6000, minFloor: 250, dropWeight: 1.5 },
+      { id: "end_sword", order: 12, name: "종말검", icon: "☄️", rarity: "ancient", damage: 3500, maxDamage: 16000, growth: 120, sellGold: 10000, minFloor: 350, dropWeight: 0.8 },
+      { id: "creator_sword", order: 13, name: "창조자의 검", icon: "👑", rarity: "ancient", damage: 6000, maxDamage: 30000, growth: 220, sellGold: 20000, minFloor: 500, dropWeight: 0.3 },
+      { id: "developer_sword", order: 999, name: "개발자의 검", icon: "🛠️", rarity: "developer", damage: 99999, maxDamage: 999999, growth: 999, sellGold: 0, minFloor: 1, dropWeight: 0, adminOnly: true }
     ];
+
+    const itemPool = swordCatalog;
 
     const normalMonsters = [
       "슬라임",
@@ -963,6 +697,7 @@
       profileEmoji: "🧑‍💻",
       inventory: [],
       equippedWeaponId: "",
+      swordSystemVersion: SWORD_SYSTEM_VERSION,
       achievements: {},
       isAdmin: false,
       ban: {
@@ -990,47 +725,55 @@
       };
     }
 
+    function getSwordBase(swordId) {
+      return swordCatalog.find(sword => sword.id === swordId) || null;
+    }
+
     function getEquippedWeapon() {
       if (!gameData.inventory || !gameData.equippedWeaponId) return null;
       return gameData.inventory.find(item => item.instanceId === gameData.equippedWeaponId) || null;
     }
 
+    function calculateItemAttack(item) {
+      const base = getSwordBase(item.swordId || item.id);
+
+      if (!base) return 0;
+
+      const enhanceLevel = Number(item.enhanceLevel || 0);
+      const damage = Number(base.damage || 0) + enhanceLevel * Number(base.growth || 1);
+
+      return Math.min(damage, Number(base.maxDamage || damage));
+    }
+
     function getTotalAttack() {
       const weapon = getEquippedWeapon();
-      const weaponAttack = weapon ? Number(weapon.attackBonus || 0) : 0;
+      const weaponAttack = weapon ? calculateItemAttack(weapon) : 0;
       return Number(gameData.attack || 1) + weaponAttack;
     }
 
-    function calculateItemAttack(item) {
-      const baseAttack = Number(item.baseAttack || item.attackBonus || 1);
-      const enhanceLevel = Number(item.enhanceLevel || 0);
-
-      if (item.id === "wood_sword") {
-        return Math.min(baseAttack + enhanceLevel, 10);
-      }
-
-      return baseAttack + enhanceLevel;
-    }
-
     function getItemDisplayName(item) {
+      const base = getSwordBase(item.swordId || item.id);
       const enhanceLevel = Number(item.enhanceLevel || 0);
       const enhanceText = enhanceLevel > 0 ? `+${enhanceLevel}강` : "";
-      return `${item.icon || "🎒"} ${item.name}${enhanceText}`;
+
+      if (!base) {
+        return `알 수 없는 검${enhanceText}`;
+      }
+
+      return `${base.icon || "⚔️"} ${base.name}${enhanceText}`;
     }
 
-    function createItem(baseItem) {
+    function createItem(baseItemOrId) {
+      const base = typeof baseItemOrId === "string" ? getSwordBase(baseItemOrId) : baseItemOrId;
+
+      if (!base) return null;
+
       const item = {
-        instanceId: String(Date.now()) + "-" + Math.floor(Math.random() * 100000),
-        id: baseItem.id,
-        name: baseItem.name,
-        icon: baseItem.icon,
-        type: baseItem.type,
-        rarity: baseItem.rarity,
-        baseAttack: Number(baseItem.attackBonus || 1),
-        maxAttack: Number(baseItem.maxAttack || 999),
+        instanceId: String(Date.now()) + "-" + Math.floor(Math.random() * 1000000),
+        swordId: base.id,
+        type: "weapon",
         enhanceLevel: 0,
         maxEnhance: 99,
-        sellGold: baseItem.sellGold,
         createdAt: new Date().toLocaleString()
       };
 
@@ -1040,146 +783,160 @@
     }
 
     function createStarterInventory() {
-      const woodSwordBase = itemPool.find(item => item.id === "wood_sword") || itemPool[0];
-      const woodSword = createItem(woodSwordBase);
+      const woodSword = createItem("wood_sword");
 
       return {
-        inventory: [woodSword],
-        equippedWeaponId: woodSword.instanceId
+        inventory: woodSword ? [woodSword] : [],
+        equippedWeaponId: woodSword ? woodSword.instanceId : ""
       };
     }
 
     function normalizeInventory(inventory, equippedWeaponId) {
-      let normalizedInventory = Array.isArray(inventory) ? inventory : [];
-
-      if (normalizedInventory.length === 0) {
+      if (!Array.isArray(inventory)) {
         return createStarterInventory();
       }
 
-      normalizedInventory = normalizedInventory.map(item => {
-        const baseItem = itemPool.find(base => base.id === item.id);
-        const baseAttack = Number(item.baseAttack || item.attackBonus || (baseItem ? baseItem.attackBonus : 1));
-        const enhanceLevel = Number(item.enhanceLevel || 0);
+      const normalized = inventory
+        .map(item => {
+          const swordId = item.swordId || item.id;
+          const base = getSwordBase(swordId);
 
-        const normalized = {
-          ...item,
-          baseAttack: baseAttack,
-          enhanceLevel: enhanceLevel,
-          maxEnhance: Number(item.maxEnhance || 99),
-          maxAttack: Number(item.maxAttack || (baseItem && baseItem.maxAttack) || 999)
-        };
+          if (!base) return null;
 
-        normalized.attackBonus = calculateItemAttack(normalized);
+          return {
+            instanceId: item.instanceId || String(Date.now()) + "-" + Math.floor(Math.random() * 1000000),
+            swordId: base.id,
+            type: "weapon",
+            enhanceLevel: Math.min(Number(item.enhanceLevel || 0), 99),
+            maxEnhance: 99,
+            createdAt: item.createdAt || new Date().toLocaleString(),
+            attackBonus: 0
+          };
+        })
+        .filter(Boolean);
 
-        return normalized;
+      normalized.forEach(item => {
+        item.attackBonus = calculateItemAttack(item);
       });
 
-      let validEquippedWeaponId = equippedWeaponId || "";
-
-      const hasEquipped = normalizedInventory.some(item => item.instanceId === validEquippedWeaponId);
-
-      if (!hasEquipped) {
-        const firstWeapon = normalizedInventory.find(item => item.type === "weapon");
-        validEquippedWeaponId = firstWeapon ? firstWeapon.instanceId : "";
+      if (normalized.length === 0) {
+        return createStarterInventory();
       }
 
+      const hasEquipped = normalized.some(item => item.instanceId === equippedWeaponId);
+      const validEquippedWeaponId = hasEquipped ? equippedWeaponId : normalized[0].instanceId;
+
       return {
-        inventory: normalizedInventory,
+        inventory: normalized,
         equippedWeaponId: validEquippedWeaponId
       };
     }
 
     function getEnhanceCost(item) {
+      const base = getSwordBase(item.swordId || item.id);
       const enhanceLevel = Number(item.enhanceLevel || 0);
-      return 10 + enhanceLevel * 5;
+      const baseDamage = base ? Number(base.damage || 1) : 1;
+
+      return Math.floor(20 + enhanceLevel * 15 + baseDamage * 0.6);
     }
 
-    function getRandomAvailableItemByRarity(rarity) {
-      const floor = Number(gameData.floor || 1);
-      const items = itemPool.filter(item => {
-        if (item.rarity !== rarity) return false;
+    function resetSwordSystemData() {
+      const starterInventory = createStarterInventory();
 
-        // 일반 등급 검은 모든 몬스터에게서 50% 확률로 나와야 하므로 층 제한 없음
-        if (rarity === "common") return true;
+      gameData.inventory = starterInventory.inventory;
+      gameData.equippedWeaponId = starterInventory.equippedWeaponId;
+      gameData.swordSystemVersion = SWORD_SYSTEM_VERSION;
+      selectedInventoryItemId = gameData.equippedWeaponId || "";
 
-        return floor >= Number(item.minFloor || 1);
-      });
+      lastDropResult = "검 시스템 v2로 초기화했습니다. 기존 검 데이터는 삭제되었습니다.";
+      addMail("검 시스템 초기화", "검 시스템 v2 적용으로 기존 검 데이터가 삭제되고 나무검이 지급되었습니다.");
+    }
 
-      if (items.length === 0) {
-        return null;
+    function grantDeveloperSword() {
+      if (!gameData || !gameData.isAdmin) return;
+
+      if (!Array.isArray(gameData.inventory)) {
+        gameData.inventory = [];
       }
 
-      return items[Math.floor(Math.random() * items.length)];
+      const alreadyHasDeveloperSword = gameData.inventory.some(item => item.swordId === "developer_sword");
+
+      if (!alreadyHasDeveloperSword) {
+        const developerSword = createItem("developer_sword");
+
+        if (developerSword) {
+          gameData.inventory.unshift(developerSword);
+          gameData.equippedWeaponId = developerSword.instanceId;
+          selectedInventoryItemId = developerSword.instanceId;
+          addMail("관리자 전용 검 지급", "관리자 전용 [개발자의 검]이 지급되었습니다.");
+        }
+      }
     }
 
-    function getItemById(itemId) {
-      return itemPool.find(item => item.id === itemId) || null;
+    function setupSwordSystem() {
+      if (!gameData) return;
+
+      if (gameData.swordSystemVersion !== SWORD_SYSTEM_VERSION) {
+        resetSwordSystemData();
+      }
+
+      const normalized = normalizeInventory(gameData.inventory, gameData.equippedWeaponId);
+      gameData.inventory = normalized.inventory;
+      gameData.equippedWeaponId = normalized.equippedWeaponId;
+      gameData.swordSystemVersion = SWORD_SYSTEM_VERSION;
+
+      grantDeveloperSword();
+
+      if (!selectedInventoryItemId) {
+        selectedInventoryItemId = gameData.equippedWeaponId || "";
+      }
+    }
+
+    function getAvailableDropSwords() {
+      const floor = Number(gameData.floor || 1);
+
+      return swordCatalog.filter(sword => {
+        if (sword.adminOnly) return false;
+        return floor >= Number(sword.minFloor || 1);
+      });
     }
 
     function rollDropItem(isBoss = false) {
-      const roll = Math.random() * 100;
-      const rollText = roll.toFixed(1);
+      const dropChance = isBoss ? 100 : 50;
+      const chanceRoll = Math.random() * 100;
 
-      // 0.0 ~ 49.9: 일반 검 50%
-      if (roll < 50) {
-        const commonItem = getRandomAvailableItemByRarity("common");
-
-        if (commonItem) {
-          lastDropResult = `${rollText}% → 일반 등급 검 드랍 성공`;
-          return createItem(commonItem);
-        }
-
-        lastDropResult = `${rollText}% → 일반 등급 검 목록을 찾지 못했습니다.`;
+      if (chanceRoll >= dropChance) {
+        lastDropResult = `${chanceRoll.toFixed(1)}% → 검 드랍 실패`;
         return null;
       }
 
-      // 50.0 ~ 69.9: 철검 20%
-      if (roll < 70) {
-        const item = getItemById("iron_sword");
-        lastDropResult = `${rollText}% → 철검 드랍 성공`;
-        return item ? createItem(item) : null;
+      const availableSwords = getAvailableDropSwords();
+
+      if (availableSwords.length === 0) {
+        lastDropResult = "드랍 가능한 검이 없습니다.";
+        return null;
       }
 
-      // 70.0 ~ 79.9: 다이아검 10%
-      if (roll < 80) {
-        const item = getItemById("diamond_sword");
-        lastDropResult = `${rollText}% → 다이아검 드랍 성공`;
-        return item ? createItem(item) : null;
+      const totalWeight = availableSwords.reduce((sum, sword) => sum + Number(sword.dropWeight || 0), 0);
+      let roll = Math.random() * totalWeight;
+
+      for (const sword of availableSwords) {
+        roll -= Number(sword.dropWeight || 0);
+
+        if (roll <= 0) {
+          const item = createItem(sword.id);
+          lastDropResult = `${sword.name} 드랍 성공`;
+          return item;
+        }
       }
 
-      // 80.0 ~ 87.4: 에메랄드검 7.5%
-      if (roll < 87.5) {
-        const item = getItemById("emerald_sword");
-        lastDropResult = `${rollText}% → 에메랄드검 드랍 성공`;
-        return item ? createItem(item) : null;
-      }
-
-      // 87.5 ~ 92.4: 네더검 5%
-      if (roll < 92.5) {
-        const item = getItemById("nether_sword");
-        lastDropResult = `${rollText}% → 네더검 드랍 성공`;
-        return item ? createItem(item) : null;
-      }
-
-      // 92.5 ~ 95.5: 라이트검 3.1%
-      if (roll < 95.6) {
-        const item = getItemById("light_sword");
-        lastDropResult = `${rollText}% → 라이트검 드랍 성공`;
-        return item ? createItem(item) : null;
-      }
-
-      // 95.6 ~ 95.7: 붉은빛검 0.1%
-      if (roll < 95.7) {
-        const item = getItemById("red_light_sword");
-        lastDropResult = `${rollText}% → 붉은빛검 드랍 성공`;
-        return item ? createItem(item) : null;
-      }
-
-      lastDropResult = `${rollText}% → 드랍 실패`;
-      return null;
+      const fallback = createItem(availableSwords[0].id);
+      lastDropResult = `${availableSwords[0].name} 드랍 성공`;
+      return fallback;
     }
 
     function getRarityName(rarity) {
+      if (rarity === "developer") return "관리자";
       if (rarity === "ancient") return "고대";
       if (rarity === "mythic") return "신화";
       if (rarity === "legendary") return "전설";
@@ -1205,18 +962,54 @@
     }
 
     function getMonsterMaxHp() {
-      const floor = Number(gameData.floor || 1);
+      const floor = Math.min(Number(gameData.floor || 1), MAX_FLOOR);
+      const level = Number(gameData.level || 1);
+
+      // 층이 올라갈수록 체력이 점점 증가하는 공식
+      // 너무 급격하지 않게 증가해서 100000층까지 진행 가능하게 설정
+      const normalHp = Math.floor(20 + floor * 1.5 + level * 3);
 
       if (isBossFloor()) {
-        return 80 + floor * 18 + gameData.level * 10;
+        return Math.floor(normalHp * 4);
       }
 
-      return 10 + floor * 7 + gameData.level * 4;
+      return normalHp;
+    }
+
+    function normalizeMonsterHp() {
+      if (!Number.isFinite(Number(gameData.floor)) || Number(gameData.floor) < 1) {
+        gameData.floor = 1;
+      }
+
+      if (Number(gameData.floor) > MAX_FLOOR) {
+        gameData.floor = MAX_FLOOR;
+      }
+
+      const maxHp = getMonsterMaxHp();
+
+      if (!Number.isFinite(Number(gameData.monsterHp)) || Number(gameData.monsterHp) <= 0) {
+        gameData.monsterHp = maxHp;
+        return;
+      }
+
+      // 이전 버전에서 비정상적으로 높은 체력이 저장된 경우 현재 공식 기준으로 보정
+      if (Number(gameData.monsterHp) > maxHp) {
+        gameData.monsterHp = maxHp;
+      }
     }
 
     function moveNextFloor() {
-      gameData.floor = Number(gameData.floor || 1) + 1;
+      const currentFloor = Number(gameData.floor || 1);
+
+      if (currentFloor >= MAX_FLOOR) {
+        gameData.floor = MAX_FLOOR;
+        gameData.monsterHp = getMonsterMaxHp();
+        return false;
+      }
+
+      gameData.floor = currentFloor + 1;
       gameData.monsterHp = getMonsterMaxHp();
+      return true;
     }
 
     function getNeedXp() {
@@ -1254,29 +1047,29 @@
     }
 
     function giveAdminAllSwords() {
-      if (!gameData.isAdmin) return;
+      // 검 시스템 삭제로 관리자 자동 검 지급 기능도 비활성화
+      return;
+    }
 
-      if (!Array.isArray(gameData.inventory)) {
-        gameData.inventory = [];
+    function ensureAdminTitle() {
+      if (!gameData || !gameData.isAdmin) return;
+
+      if (!Array.isArray(gameData.ownedTitles)) {
+        gameData.ownedTitles = ["초보자"];
       }
 
-      let addedCount = 0;
-
-      itemPool.forEach(baseItem => {
-        const alreadyHasItem = gameData.inventory.some(item => item.id === baseItem.id);
-
-        if (!alreadyHasItem) {
-          gameData.inventory.push(createItem(baseItem));
-          addedCount++;
-        }
-      });
-
-      if (addedCount > 0) {
-        addMail("관리자 지급", `관리자 권한으로 모든 검 ${addedCount}개가 인벤토리에 지급되었습니다.`);
+      if (!gameData.ownedTitles.includes("개발자")) {
+        gameData.ownedTitles.push("개발자");
+        addMail("관리자 칭호 지급", "관리자 전용 칭호 [개발자]가 자동 지급되었습니다.");
       }
+
+      gameData.title = "개발자";
     }
 
     function updateUI() {
+      setupSwordSystem();
+      ensureAdminTitle();
+
       const versionText = document.getElementById("gameVersion");
       if (versionText) {
         versionText.innerText = GAME_VERSION;
@@ -1291,9 +1084,16 @@
       document.getElementById("needXp").innerText = getNeedXp();
       document.getElementById("gold").innerText = gameData.gold;
       document.getElementById("gem").innerText = gameData.gem;
+      normalizeMonsterHp();
+
       document.getElementById("attack").innerText = getTotalAttack();
       document.getElementById("monsterHp").innerText = gameData.monsterHp;
       document.getElementById("floor").innerText = gameData.floor || 1;
+
+      const maxFloorText = document.getElementById("maxFloor");
+      if (maxFloorText) {
+        maxFloorText.innerText = MAX_FLOOR;
+      }
       document.getElementById("monsterName").innerText = getMonsterName();
       document.getElementById("bossLabel").innerText = isBossFloor() ? "⚠️ 보스 층입니다!" : "";
 
@@ -1494,7 +1294,7 @@
       const equippedWeapon = getEquippedWeapon();
 
       document.getElementById("equippedWeapon").innerText = equippedWeapon
-        ? `${getItemDisplayName(equippedWeapon)} (+${equippedWeapon.attackBonus})`
+        ? `${getItemDisplayName(equippedWeapon)} (+${calculateItemAttack(equippedWeapon)})`
         : "없음";
 
       const inventoryTotalAttack = document.getElementById("inventoryTotalAttack");
@@ -1510,33 +1310,37 @@
         const starterInventory = createStarterInventory();
         gameData.inventory = starterInventory.inventory;
         gameData.equippedWeaponId = starterInventory.equippedWeaponId;
-        selectedInventoryItemId = starterInventory.equippedWeaponId;
       }
 
       const items = gameData.inventory;
 
       if (!selectedInventoryItemId || !items.some(item => item.instanceId === selectedInventoryItemId)) {
-        selectedInventoryItemId = gameData.equippedWeaponId || items[0].instanceId;
+        selectedInventoryItemId = gameData.equippedWeaponId || items[0]?.instanceId || "";
       }
 
       const filteredItems = inventoryFilter === "all"
         ? items
-        : items.filter(item => item.rarity === inventoryFilter);
+        : items.filter(item => {
+            const base = getSwordBase(item.swordId || item.id);
+            return base && base.rarity === inventoryFilter;
+          });
 
       if (filteredItems.length === 0) {
-        inventoryList.innerHTML = "<p>이 등급의 아이템이 없습니다.</p>";
+        inventoryList.innerHTML = "<p>이 등급의 검이 없습니다.</p>";
       } else {
         inventoryList.innerHTML = filteredItems.map(item => {
+          const base = getSwordBase(item.swordId || item.id);
           const equipped = gameData.equippedWeaponId === item.instanceId;
           const selected = selectedInventoryItemId === item.instanceId;
+          const rarity = base ? base.rarity : "common";
 
           return `
-            <div class="inventory-slot item-${item.rarity || "common"} ${selected ? "selected-slot" : ""}" onclick="selectInventoryItem('${item.instanceId}')">
+            <div class="inventory-slot item-${rarity} ${selected ? "selected-slot" : ""}" onclick="selectInventoryItem('${item.instanceId}')">
               ${equipped ? `<div class="equipped-badge">장착</div>` : ""}
-              <div class="slot-icon">${item.icon || "🎒"}</div>
-              <div class="slot-name">${item.name}${Number(item.enhanceLevel || 0) > 0 ? `+${item.enhanceLevel}` : ""}</div>
-              <div class="slot-grade">${getRarityName(item.rarity)}</div>
-              <div class="slot-grade">공격 +${item.attackBonus || 0}</div>
+              <div class="slot-icon">${base?.icon || "⚔️"}</div>
+              <div class="slot-name">${base?.name || "알 수 없는 검"}${Number(item.enhanceLevel || 0) > 0 ? `+${item.enhanceLevel}강` : ""}</div>
+              <div class="slot-grade">${getRarityName(rarity)}</div>
+              <div class="slot-grade">공격 +${calculateItemAttack(item)}</div>
             </div>
           `;
         }).join("");
@@ -1552,23 +1356,31 @@
       if (!itemDetail) return;
 
       if (!item) {
-        itemDetail.innerHTML = "<p>아이템을 선택하세요.</p>";
+        itemDetail.innerHTML = "<p>검을 선택하세요.</p>";
+        return;
+      }
+
+      const base = getSwordBase(item.swordId || item.id);
+
+      if (!base) {
+        itemDetail.innerHTML = "<p>알 수 없는 검입니다.</p>";
         return;
       }
 
       const equipped = gameData.equippedWeaponId === item.instanceId;
       const enhanceLevel = Number(item.enhanceLevel || 0);
       const enhanceCost = getEnhanceCost(item);
-      const attackLimitText = item.id === "wood_sword" ? " / 나무검 공격력 최대 10" : "";
+      const damage = calculateItemAttack(item);
 
       itemDetail.innerHTML = `
         <div class="detail-title">${getItemDisplayName(item)}</div>
-        <div>등급: ${getRarityName(item.rarity)}</div>
-        <div>종류: ${item.type === "weapon" ? "무기" : item.type}</div>
+        <div>등급: ${getRarityName(base.rarity)}</div>
+        <div>종류: 무기</div>
         <div>강화: +${enhanceLevel}강 / 최대 +99강</div>
-        <div>공격력 보너스: +${item.attackBonus || 0}${attackLimitText}</div>
+        <div>검 데미지: +${damage}</div>
+        <div>최대 데미지: +${base.maxDamage}</div>
         <div>강화 비용: ${enhanceCost}골드</div>
-        <div>판매 가격: ${item.sellGold || 0}골드</div>
+        <div>판매 가격: ${base.adminOnly ? "판매 불가" : `${base.sellGold || 0}골드`}</div>
         <div class="${equipped ? "owned" : "small-text"}">${equipped ? "현재 장착 중" : "미장착"}</div>
 
         <div class="detail-actions">
@@ -1591,6 +1403,7 @@
 
     window.sortInventory = async function() {
       const rarityScore = {
+        developer: 8,
         ancient: 7,
         mythic: 6,
         legendary: 5,
@@ -1600,13 +1413,16 @@
       };
 
       gameData.inventory.sort((a, b) => {
-        const rarityDiff = (rarityScore[b.rarity] || 0) - (rarityScore[a.rarity] || 0);
+        const baseA = getSwordBase(a.swordId || a.id);
+        const baseB = getSwordBase(b.swordId || b.id);
+
+        const rarityDiff = (rarityScore[baseB?.rarity] || 0) - (rarityScore[baseA?.rarity] || 0);
         if (rarityDiff !== 0) return rarityDiff;
 
-        const attackDiff = Number(b.attackBonus || 0) - Number(a.attackBonus || 0);
+        const attackDiff = calculateItemAttack(b) - calculateItemAttack(a);
         if (attackDiff !== 0) return attackDiff;
 
-        return String(a.name).localeCompare(String(b.name), "ko");
+        return Number(baseA?.order || 0) - Number(baseB?.order || 0);
       });
 
       showMessage("인벤토리를 등급/공격력 순으로 정렬했습니다.");
@@ -1618,18 +1434,14 @@
       const item = gameData.inventory.find(target => target.instanceId === instanceId);
 
       if (!item) {
-        showMessage("아이템을 찾을 수 없습니다.");
-        return;
-      }
-
-      if (item.type !== "weapon") {
-        showMessage("현재는 무기만 장착할 수 있습니다.");
+        showMessage("검을 찾을 수 없습니다.");
         return;
       }
 
       gameData.equippedWeaponId = instanceId;
+      selectedInventoryItemId = instanceId;
 
-      addMail("장비 장착", `${getItemDisplayName(item)}을 장착했습니다.`);
+      addMail("검 장착", `${getItemDisplayName(item)}을 장착했습니다.`);
       showMessage(`${getItemDisplayName(item)}을 장착했습니다. 총 공격력: ${getTotalAttack()}`);
 
       updateUI();
@@ -1640,7 +1452,7 @@
       const item = gameData.inventory.find(target => target.instanceId === instanceId);
 
       if (!item) {
-        showMessage("아이템을 찾을 수 없습니다.");
+        showMessage("검을 찾을 수 없습니다.");
         return;
       }
 
@@ -1653,7 +1465,7 @@
 
       const cost = getEnhanceCost(item);
 
-      if (gameData.gold < cost) {
+      if (Number(gameData.gold || 0) < cost) {
         showMessage(`골드가 부족합니다. 강화 비용: ${cost}골드`);
         return;
       }
@@ -1662,13 +1474,8 @@
       item.enhanceLevel = enhanceLevel + 1;
       item.attackBonus = calculateItemAttack(item);
 
-      addMail("아이템 강화", `${getItemDisplayName(item)} 강화에 성공했습니다.`);
-
-      if (item.id === "wood_sword" && item.attackBonus >= 10) {
-        showMessage(`${getItemDisplayName(item)} 강화 성공! 나무검 공격력은 최대 10까지만 올라갑니다.`);
-      } else {
-        showMessage(`${getItemDisplayName(item)} 강화 성공!`);
-      }
+      addMail("검 강화", `${getItemDisplayName(item)} 강화에 성공했습니다.`);
+      showMessage(`${getItemDisplayName(item)} 강화 성공! 현재 검 데미지: +${calculateItemAttack(item)}`);
 
       updateUI();
       await saveUserData();
@@ -1678,24 +1485,33 @@
       const itemIndex = gameData.inventory.findIndex(target => target.instanceId === instanceId);
 
       if (itemIndex === -1) {
-        showMessage("아이템을 찾을 수 없습니다.");
+        showMessage("검을 찾을 수 없습니다.");
         return;
       }
 
       const item = gameData.inventory[itemIndex];
+      const base = getSwordBase(item.swordId || item.id);
+
+      if (base && base.adminOnly) {
+        showMessage("개발자의 검은 판매할 수 없습니다.");
+        return;
+      }
+
+      if (gameData.equippedWeaponId === item.instanceId) {
+        showMessage("장착 중인 검은 판매할 수 없습니다. 다른 검을 먼저 장착하세요.");
+        return;
+      }
 
       if (selectedInventoryItemId === item.instanceId) {
         selectedInventoryItemId = "";
       }
 
-      if (gameData.equippedWeaponId === item.instanceId) {
-        gameData.equippedWeaponId = "";
-      }
+      const sellGold = Number(base?.sellGold || 0);
 
-      gameData.gold += Number(item.sellGold || 0);
+      gameData.gold += sellGold;
       gameData.inventory.splice(itemIndex, 1);
 
-      addMail("아이템 판매", `${getItemDisplayName(item)}을 판매하고 ${item.sellGold || 0}골드를 받았습니다.`);
+      addMail("검 판매", `${getItemDisplayName(item)}을 판매하고 ${sellGold}골드를 받았습니다.`);
       showMessage(`${getItemDisplayName(item)}을 판매했습니다.`);
 
       updateUI();
@@ -1773,6 +1589,7 @@
         profileEmoji: gameData.profileEmoji,
         inventory: gameData.inventory || [],
         equippedWeaponId: gameData.equippedWeaponId || "",
+        swordSystemVersion: gameData.swordSystemVersion || SWORD_SYSTEM_VERSION,
         achievements: gameData.achievements,
         isAdmin: gameData.isAdmin,
         ban: gameData.ban,
@@ -1808,6 +1625,7 @@
           profileEmoji: data.profileEmoji || "🧑‍💻",
           inventory: normalizedInventory.inventory,
           equippedWeaponId: normalizedInventory.equippedWeaponId,
+          swordSystemVersion: data.swordSystemVersion || "",
           achievements: data.achievements || {},
           isAdmin: data.isAdmin || false,
           ban: data.ban || { banned: false, type: "", reason: "", until: 0 }
@@ -1839,6 +1657,7 @@
           profileEmoji: "🧑‍💻",
           inventory: starterInventory.inventory,
           equippedWeaponId: starterInventory.equippedWeaponId,
+          swordSystemVersion: SWORD_SYSTEM_VERSION,
           achievements: {},
           isAdmin: false,
           ban: { banned: false, type: "", reason: "", until: 0 }
@@ -1858,6 +1677,8 @@
       document.getElementById("banBox").style.display = "none";
       document.getElementById("gameBox").style.display = "block";
 
+      setupSwordSystem();
+      ensureAdminTitle();
       checkAchievements();
       updateUI();
       await saveUserData();
@@ -1914,9 +1735,11 @@
         let levelRank = 1;
         levelSnap.forEach(docSnap => {
           const data = docSnap.data();
+          const userTitle = data.title || (data.isAdmin ? "개발자" : "초보자");
+
           levelHtml += `
             <div class="rank-card">
-              #${levelRank} ${data.profileEmoji || "🧑‍💻"} ${data.nickname || "플레이어"}
+              #${levelRank} ${data.profileEmoji || "🧑‍💻"} [${userTitle}] ${data.nickname || "플레이어"}
               <br>
               ID: ${data.publicId || "없음"} / 레벨: ${data.level || 1}
             </div>
@@ -1932,9 +1755,11 @@
         let gemRank = 1;
         gemSnap.forEach(docSnap => {
           const data = docSnap.data();
+          const userTitle = data.title || (data.isAdmin ? "개발자" : "초보자");
+
           gemHtml += `
             <div class="rank-card">
-              #${gemRank} ${data.profileEmoji || "🧑‍💻"} ${data.nickname || "플레이어"}
+              #${gemRank} ${data.profileEmoji || "🧑‍💻"} [${userTitle}] ${data.nickname || "플레이어"}
               <br>
               ID: ${data.publicId || "없음"} / 보석: ${data.gem || 0}
             </div>
@@ -2403,9 +2228,8 @@
         const boss = isBossFloor();
         const currentFloor = Number(gameData.floor || 1);
 
-        if (!Number.isFinite(Number(gameData.monsterHp)) || Number(gameData.monsterHp) <= 0) {
-          gameData.monsterHp = getMonsterMaxHp();
-        }
+        // 예전 버전에서 저장된 과도하게 높은 체력을 현재 밸런스에 맞게 줄임
+        normalizeMonsterHp();
 
         gameData.monsterHp = Number(gameData.monsterHp) - damage;
 
@@ -2435,17 +2259,17 @@
             gameData.inventory.unshift(droppedItem);
             selectedInventoryItemId = droppedItem.instanceId;
             inventoryFilter = "all";
-            addMail("아이템 획득", `${getItemDisplayName(droppedItem)}을 획득했습니다.`);
-            rewardText += `, 아이템 [${getItemDisplayName(droppedItem)}] 획득`;
-          } else {
-            rewardText += ", 아이템 드랍 실패";
+            addMail("검 획득", `${getItemDisplayName(droppedItem)}을 획득했습니다.`);
+            rewardText += `, 검 [${getItemDisplayName(droppedItem)}] 획득`;
           }
 
-          // 다음 층 이동을 가장 확실하게 처리
-          gameData.floor = currentFloor + 1;
-          gameData.monsterHp = getMonsterMaxHp();
+          const movedNextFloor = moveNextFloor();
 
-          showMessage(rewardText + ` / ${gameData.floor}층으로 이동했습니다.`);
+          if (movedNextFloor) {
+            showMessage(rewardText + ` / ${gameData.floor}층으로 이동했습니다.`);
+          } else {
+            showMessage(rewardText + ` / 최고층 ${MAX_FLOOR}층을 클리어했습니다!`);
+          }
 
           checkLevelUp();
           checkAchievements();
@@ -2463,7 +2287,7 @@
           return;
         }
 
-        showMessage(`${defeatedMonsterName}을 공격했습니다! 피해량: ${damage}`);
+        showMessage(`${defeatedMonsterName}을 공격했습니다! 피해량: ${damage}, 남은 체력: ${gameData.monsterHp}`);
         updateUI();
         await saveUserData();
       } catch (error) {
@@ -2475,9 +2299,9 @@
       if (!gameData) return;
 
       gameData.monsterHp = getMonsterMaxHp();
-      lastDropResult = "몬스터 체력을 현재 층 기준으로 새로고침했습니다.";
+      lastDropResult = "몬스터 체력을 현재 밸런스 기준으로 재설정했습니다.";
 
-      showMessage("현재 몬스터를 새로고침했습니다.");
+      showMessage("몬스터 체력을 현재 밸런스 기준으로 재설정했습니다.");
       updateUI();
       await saveUserData();
     };
