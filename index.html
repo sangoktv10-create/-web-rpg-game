@@ -377,7 +377,7 @@
 
   <div class="container">
     <h1>Web RPG</h1>
-    <p class="small-text">버전: <span id="gameVersion">1.1.0</span></p>
+    <p class="small-text">버전: <span id="gameVersion">1.1.1</span></p>
 
     <div id="loginBox" class="box">
       <h2>로그인</h2>
@@ -422,7 +422,7 @@
         <div class="profile-emoji" id="profileEmoji">🧑‍💻</div>
         <p>닉네임: <span id="nickname">플레이어</span></p>
         <input id="nicknameInput" placeholder="새 닉네임 입력">
-        <button class="equip-btn" onclick="changeNickname()">닉네임 변경</button>
+        <button id="nicknameChangeBtn" type="button" class="equip-btn">닉네임 변경</button>
         <p>유저 ID: <span id="publicId">LB-000000</span></p>
         <p>칭호: <span id="title">초보자</span></p>
         <p>레벨: <span id="level">1</span></p>
@@ -439,14 +439,14 @@
         <p>체력: <span id="monsterHp">10</span></p>
         <p class="small-text">드랍 결과: <span id="dropResult">아직 검 드랍 판정이 없습니다.</span></p>
         <p class="small-text">몬스터 체력은 층이 올라갈수록 점점 증가하며, 최대 100000층까지 진행할 수 있습니다. 몬스터 처치 시 검 드랍 판정이 진행됩니다.</p>
-        <button onclick="attackMonster()">공격하기</button>
-        <button class="equip-btn" onclick="resetCurrentMonster()">몬스터 체력 재설정</button>
+        <button id="attackBtn" type="button">공격하기</button>
+        <button id="resetMonsterBtn" type="button" class="equip-btn">몬스터 체력 재설정</button>
       </div>
 
       <div id="upgradeSection" class="box">
         <h2>강화</h2>
         <p class="small-text">기본 공격력 강화는 여기서 하고, 검 강화는 인벤토리에서 검을 선택한 뒤 강화 버튼을 누르면 됩니다.</p>
-        <button onclick="upgradeAttack()">기본 공격력 강화 10골드</button>
+        <button id="upgradeAttackBtn" type="button">기본 공격력 강화 10골드</button>
       </div>
 
       <div id="inventorySection" class="box">
@@ -615,7 +615,7 @@
     let currentUser = null;
     let adminTarget = null;
 
-    const GAME_VERSION = "1.1.0";
+    const GAME_VERSION = "1.1.1";
     const MAX_FLOOR = 100000;
     const SWORD_SYSTEM_VERSION = "2.0.0";
 
@@ -1121,6 +1121,8 @@
       if (adminMenuButton) {
         adminMenuButton.style.display = gameData.isAdmin ? "inline-block" : "none";
       }
+
+      bindGameButtons();
     }
 
     function showMessage(text) {
@@ -1676,6 +1678,7 @@
 
       document.getElementById("banBox").style.display = "none";
       document.getElementById("gameBox").style.display = "block";
+      bindGameButtons();
 
       setupSwordSystem();
       ensureAdminTitle();
@@ -1776,28 +1779,43 @@
     };
 
     window.changeNickname = async function() {
-      const nicknameInput = document.getElementById("nicknameInput");
-      const newNickname = nicknameInput.value.trim();
+      try {
+        const nicknameInput = document.getElementById("nicknameInput");
 
-      if (newNickname.length < 2) {
-        showMessage("닉네임은 2글자 이상이어야 합니다.");
-        return;
+        if (!nicknameInput) {
+          showMessage("닉네임 입력칸을 찾을 수 없습니다.");
+          return;
+        }
+
+        const newNickname = nicknameInput.value.trim();
+
+        if (newNickname.length < 2) {
+          showMessage("닉네임은 2글자 이상이어야 합니다.");
+          return;
+        }
+
+        if (newNickname.length > 12) {
+          showMessage("닉네임은 12글자 이하로 입력하세요.");
+          return;
+        }
+
+        gameData.nickname = newNickname;
+        nicknameInput.value = "";
+
+        const nicknameText = document.getElementById("nickname");
+        if (nicknameText) {
+          nicknameText.innerText = newNickname;
+        }
+
+        addMail("닉네임 변경", `닉네임이 [${newNickname}]으로 변경되었습니다.`);
+        showMessage(`닉네임이 [${newNickname}]으로 변경되었습니다.`);
+
+        updateUI();
+        await saveUserData();
+        await loadRankings();
+      } catch (error) {
+        showMessage("닉네임 변경 중 오류가 발생했습니다: " + error.message);
       }
-
-      if (newNickname.length > 12) {
-        showMessage("닉네임은 12글자 이하로 입력하세요.");
-        return;
-      }
-
-      gameData.nickname = newNickname;
-      nicknameInput.value = "";
-
-      addMail("닉네임 변경", `닉네임이 [${newNickname}]으로 변경되었습니다.`);
-      showMessage(`닉네임이 [${newNickname}]으로 변경되었습니다.`);
-
-      updateUI();
-      await saveUserData();
-      await loadRankings();
     };
 
     window.buyTitle = async function(titleName, cost) {
@@ -2174,6 +2192,40 @@
       showMessage("관리자 패널로 이동했습니다.");
     };
 
+    function bindGameButtons() {
+      const bind = function(id, handler) {
+        const element = document.getElementById(id);
+
+        if (!element || element.dataset.bound === "true") return;
+
+        element.dataset.bound = "true";
+        element.addEventListener("click", function(event) {
+          event.preventDefault();
+          handler();
+        });
+      };
+
+      bind("nicknameChangeBtn", function() {
+        window.changeNickname();
+      });
+
+      bind("attackBtn", function() {
+        window.attackMonster();
+      });
+
+      bind("resetMonsterBtn", function() {
+        window.resetCurrentMonster();
+      });
+
+      bind("upgradeAttackBtn", function() {
+        window.upgradeAttack();
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", bindGameButtons);
+    setTimeout(bindGameButtons, 500);
+    setTimeout(bindGameButtons, 1500);
+
     window.signUp = async function() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -2287,7 +2339,7 @@
           return;
         }
 
-        showMessage(`${defeatedMonsterName}을 공격했습니다! 피해량: ${damage}, 남은 체력: ${gameData.monsterHp}`);
+        showMessage(`공격 성공! ${defeatedMonsterName}에게 ${damage} 피해를 줬습니다. 남은 체력: ${gameData.monsterHp}`);
         updateUI();
         await saveUserData();
       } catch (error) {
