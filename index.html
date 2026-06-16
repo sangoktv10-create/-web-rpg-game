@@ -5,9 +5,7 @@
   <title>Web RPG Game</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -37,22 +35,18 @@
     }
 
     @keyframes starsMove {
-      from {
-        transform: translateY(0);
-      }
-      to {
-        transform: translateY(80px);
-      }
+      from { transform: translateY(0); }
+      to { transform: translateY(80px); }
     }
 
     .container {
       position: relative;
       width: 92%;
-      max-width: 620px;
+      max-width: 760px;
       margin: 35px auto;
       padding: 24px;
       border-radius: 24px;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.92);
       border: 1px solid rgba(96, 165, 250, 0.35);
       box-shadow:
         0 0 25px rgba(37, 99, 235, 0.35),
@@ -84,13 +78,8 @@
         0 0 35px rgba(168, 85, 247, 0.5);
     }
 
-    h1::before {
-      content: "⚔️ ";
-    }
-
-    h1::after {
-      content: " 💎";
-    }
+    h1::before { content: "⚔️ "; }
+    h1::after { content: " 💎"; }
 
     h2 {
       color: #e0f2fe;
@@ -99,15 +88,12 @@
 
     .box {
       position: relative;
-      background:
-        linear-gradient(180deg, rgba(51, 65, 85, 0.95), rgba(30, 41, 59, 0.95));
+      background: linear-gradient(180deg, rgba(51, 65, 85, 0.95), rgba(30, 41, 59, 0.95));
       margin-top: 16px;
       padding: 18px;
       border-radius: 18px;
       border: 1px solid rgba(148, 163, 184, 0.25);
-      box-shadow:
-        0 8px 18px rgba(0, 0, 0, 0.35),
-        inset 0 0 16px rgba(255, 255, 255, 0.04);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35), inset 0 0 16px rgba(255, 255, 255, 0.04);
     }
 
     .box::before {
@@ -120,7 +106,7 @@
       background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.8), transparent);
     }
 
-    input {
+    input, textarea {
       width: 88%;
       padding: 13px 14px;
       margin: 7px;
@@ -132,45 +118,46 @@
       outline: none;
     }
 
-    input::placeholder {
-      color: #94a3b8;
-    }
+    textarea { min-height: 90px; resize: vertical; }
 
-    input:focus {
+    input::placeholder, textarea::placeholder { color: #94a3b8; }
+
+    input:focus, textarea:focus {
       border-color: #60a5fa;
-      box-shadow:
-        0 0 0 3px rgba(96, 165, 250, 0.2),
-        0 0 18px rgba(96, 165, 250, 0.35);
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2), 0 0 18px rgba(96, 165, 250, 0.35);
     }
 
     button {
       background: linear-gradient(135deg, #2563eb, #7c3aed);
       color: white;
       border: none;
-      padding: 13px 19px;
+      padding: 12px 16px;
       border-radius: 13px;
-      font-size: 15px;
-      margin: 6px;
+      font-size: 14px;
+      margin: 5px;
       cursor: pointer;
       border-bottom: 3px solid rgba(0, 0, 0, 0.3);
-      box-shadow:
-        0 0 14px rgba(37, 99, 235, 0.45),
-        0 7px 14px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.45), 0 7px 14px rgba(0, 0, 0, 0.35);
     }
 
-    button:active {
-      transform: scale(0.96);
+    button:active { transform: scale(0.96); }
+
+    .logout { background: linear-gradient(135deg, #dc2626, #991b1b); }
+    .reward-btn { background: linear-gradient(135deg, #16a34a, #15803d); }
+    .buy-btn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .equip-btn { background: linear-gradient(135deg, #06b6d4, #2563eb); }
+    .admin-btn { background: linear-gradient(135deg, #9333ea, #4f46e5); }
+    .danger-btn { background: linear-gradient(135deg, #dc2626, #7f1d1d); }
+
+    .profile-card { border: 1px solid rgba(250, 204, 21, 0.45); }
+
+    .profile-emoji {
+      font-size: 48px;
+      margin-bottom: 5px;
+      filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.6));
     }
 
-    .logout {
-      background: linear-gradient(135deg, #dc2626, #991b1b);
-    }
-
-    .reward-btn {
-      background: linear-gradient(135deg, #16a34a, #15803d);
-    }
-
-    .mail-card {
+    .shop-card, .mail-card, .achievement-card, .rank-card, .admin-card {
       background: rgba(15, 23, 42, 0.72);
       padding: 12px;
       margin: 10px 0;
@@ -179,15 +166,22 @@
       text-align: left;
     }
 
-    .mail-title {
+    .shop-title, .mail-title, .achievement-title, .rank-title, .admin-title {
       color: #facc15;
       font-weight: bold;
+      margin-bottom: 5px;
     }
 
-    p {
-      font-size: 16px;
-      line-height: 1.6;
+    .owned { color: #86efac; font-weight: bold; }
+    .locked { color: #fca5a5; font-weight: bold; }
+    .small-text { color: #cbd5e1; font-size: 13px; }
+
+    .ban-box {
+      border: 1px solid rgba(239, 68, 68, 0.6);
+      background: linear-gradient(180deg, rgba(127, 29, 29, 0.95), rgba(30, 41, 59, 0.95));
     }
+
+    p { font-size: 16px; line-height: 1.6; }
 
     span {
       color: #facc15;
@@ -195,9 +189,7 @@
       text-shadow: 0 0 8px rgba(250, 204, 21, 0.45);
     }
 
-    #loginMessage,
-    #message,
-    #rewardMessage {
+    #loginMessage, #message, #rewardMessage, #adminMessage, #rankMessage {
       margin-top: 16px;
       color: #dbeafe;
       background: rgba(15, 23, 42, 0.6);
@@ -206,28 +198,13 @@
       border: 1px solid rgba(96, 165, 250, 0.2);
     }
 
-    #gameBox {
-      display: none;
-    }
+    #gameBox, #banBox, #adminBox { display: none; }
 
     @media (max-width: 480px) {
-      .container {
-        width: 94%;
-        margin: 20px auto;
-        padding: 18px;
-      }
-
-      h1 {
-        font-size: 27px;
-      }
-
-      button {
-        width: 85%;
-      }
-
-      input {
-        width: 92%;
-      }
+      .container { width: 94%; margin: 20px auto; padding: 18px; }
+      h1 { font-size: 27px; }
+      button { width: 85%; }
+      input, textarea { width: 92%; }
     }
   </style>
 </head>
@@ -251,9 +228,16 @@
       <p id="loginMessage">로그인하면 게임 데이터가 Firebase에 저장됩니다.</p>
     </div>
 
+    <div id="banBox" class="box ban-box">
+      <h2>접속 제한</h2>
+      <p id="banReason">현재 계정은 이용이 제한되었습니다.</p>
+      <button class="logout" onclick="logout()">로그아웃</button>
+    </div>
+
     <div id="gameBox">
-      <div class="box">
+      <div class="box profile-card">
         <h2>프로필</h2>
+        <div class="profile-emoji" id="profileEmoji">🧑‍💻</div>
         <p>닉네임: <span id="nickname">플레이어</span></p>
         <p>유저 ID: <span id="publicId">LB-000000</span></p>
         <p>칭호: <span id="title">초보자</span></p>
@@ -282,10 +266,68 @@
       </div>
 
       <div class="box">
+        <h2>칭호 상점</h2>
+        <div id="titleShop"></div>
+
+        <h2>보유 칭호</h2>
+        <div id="ownedTitleList"></div>
+      </div>
+
+      <div class="box">
+        <h2>업적</h2>
+        <div id="achievementList"></div>
+      </div>
+
+      <div class="box">
+        <h2>꾸미기 상점</h2>
+        <div id="cosmeticShop"></div>
+
+        <h2>보유 이모지</h2>
+        <div id="ownedEmojiList"></div>
+      </div>
+
+      <div class="box">
+        <h2>랭킹</h2>
+        <button onclick="loadRankings()">랭킹 새로고침</button>
+        <p id="rankMessage">레벨 랭킹과 보석 랭킹을 불러옵니다.</p>
+        <div id="levelRanking"></div>
+        <div id="gemRanking"></div>
+      </div>
+
+      <div class="box">
         <h2>우편함</h2>
         <div id="mailList">
           <p>우편이 없습니다.</p>
         </div>
+      </div>
+
+      <div id="adminBox" class="box">
+        <h2>관리자 패널</h2>
+        <p class="small-text">관리자 권한은 Firestore의 users 문서에서 isAdmin 값을 true로 설정하면 표시됩니다.</p>
+
+        <input id="adminTargetId" placeholder="상대방 유저 ID 예: LB-123456">
+        <button class="admin-btn" onclick="adminSearchUser()">유저 검색</button>
+
+        <div id="adminTargetInfo" class="admin-card">
+          <div class="admin-title">검색된 유저 없음</div>
+          <div>유저 ID를 입력하고 검색하세요.</div>
+        </div>
+
+        <input id="adminGemAmount" type="number" placeholder="보석 수량">
+        <button class="admin-btn" onclick="adminGiveGem()">보석 지급</button>
+        <button class="danger-btn" onclick="adminTakeGem()">보석 회수</button>
+
+        <input id="adminMailTitle" placeholder="우편 제목">
+        <textarea id="adminMailMessage" placeholder="우편 내용"></textarea>
+        <button class="admin-btn" onclick="adminSendMail()">우편 보내기</button>
+
+        <input id="adminBanReason" placeholder="밴/정지 사유">
+        <input id="adminSuspendDays" type="number" placeholder="정지 일수">
+        <button class="danger-btn" onclick="adminBanPermanent()">영구 밴</button>
+        <button class="danger-btn" onclick="adminSuspendDays()">며칠 정지</button>
+        <button class="admin-btn" onclick="adminUnban()">정지 해제</button>
+
+        <p id="adminMessage">관리자 기능 대기 중</p>
       </div>
 
       <div class="box">
@@ -314,18 +356,23 @@
       doc,
       getDoc,
       setDoc,
-      serverTimestamp
+      serverTimestamp,
+      collection,
+      query,
+      where,
+      orderBy,
+      limit,
+      getDocs
     } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-    // 여기를 네 Firebase config로 바꿔
     const firebaseConfig = {
-  apiKey: "AIzaSyD2bGpScCTe-ltMmDz6mPm1nGIU4ro8ksc",
-  authDomain: "web-rpg-game-5e39d.firebaseapp.com",
-  projectId: "web-rpg-game-5e39d",
-  storageBucket: "web-rpg-game-5e39d.firebasestorage.app",
-  messagingSenderId: "573615012828",
-  appId: "1:573615012828:web:f1bc4d5e206d4553b6ed19"
-};
+      apiKey: "AIzaSyD2bGpScCTe-ltMmDz6mPm1nGIU4ro8ksc",
+      authDomain: "web-rpg-game-5e39d.firebaseapp.com",
+      projectId: "web-rpg-game-5e39d",
+      storageBucket: "web-rpg-game-5e39d.firebasestorage.app",
+      messagingSenderId: "573615012828",
+      appId: "1:573615012828:web:f1bc4d5e206d4553b6ed19"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -333,6 +380,30 @@
     const googleProvider = new GoogleAuthProvider();
 
     let currentUser = null;
+    let adminTarget = null;
+
+    const titleShopItems = [
+      { name: "슬라임 사냥꾼", cost: 30, desc: "슬라임을 잡는 모험가에게 어울리는 칭호" },
+      { name: "보석 수집가", cost: 50, desc: "보석을 많이 모으는 유저에게 어울리는 칭호" },
+      { name: "강화 입문자", cost: 70, desc: "공격력 강화를 시작한 유저에게 어울리는 칭호" },
+      { name: "성장하는 모험가", cost: 100, desc: "꾸준히 성장하는 유저에게 어울리는 칭호" },
+      { name: "개발자", cost: 999999, desc: "관리자 전용 칭호", adminOnly: true }
+    ];
+
+    const cosmeticShopItems = [
+      { emoji: "⚔️", name: "검", cost: 20 },
+      { emoji: "💎", name: "보석", cost: 20 },
+      { emoji: "🔥", name: "불꽃", cost: 30 },
+      { emoji: "👑", name: "왕관", cost: 100 },
+      { emoji: "🐉", name: "드래곤", cost: 150 }
+    ];
+
+    const achievementItems = [
+      { id: "first_login", name: "첫 접속", desc: "게임에 로그인하기", rewardGem: 5, check: function() { return true; } },
+      { id: "level_3", name: "성장 시작", desc: "레벨 3 달성", rewardGem: 10, rewardTitle: "성장하는 모험가", check: function() { return gameData.level >= 3; } },
+      { id: "gem_100", name: "보석 부자", desc: "보석 100개 이상 보유", rewardGold: 50, check: function() { return gameData.gem >= 100; } },
+      { id: "attack_5", name: "강화 입문", desc: "공격력 5 달성", rewardGem: 10, rewardTitle: "강화 입문자", check: function() { return gameData.attack >= 5; } }
+    ];
 
     let gameData = {
       publicId: "",
@@ -346,7 +417,18 @@
       monsterHp: 10,
       firstRewardReceived: false,
       lastDailyReward: 0,
-      mails: []
+      mails: [],
+      ownedTitles: ["초보자"],
+      ownedEmojis: ["🧑‍💻"],
+      profileEmoji: "🧑‍💻",
+      achievements: {},
+      isAdmin: false,
+      ban: {
+        banned: false,
+        type: "",
+        reason: "",
+        until: 0
+      }
     };
 
     function generatePublicId() {
@@ -354,11 +436,51 @@
       return "LB-" + number;
     }
 
+    function createMail(title, message) {
+      return {
+        id: String(Date.now()) + "-" + Math.floor(Math.random() * 10000),
+        title: title,
+        message: message,
+        createdAt: new Date().toLocaleString()
+      };
+    }
+
     function getNeedXp() {
       return gameData.level * 20;
     }
 
+    function hasTitle(titleName) {
+      return gameData.ownedTitles.includes(titleName);
+    }
+
+    function hasEmoji(emoji) {
+      return gameData.ownedEmojis.includes(emoji);
+    }
+
+    function isBanActive(ban) {
+      if (!ban || !ban.banned) return false;
+      if (ban.type === "permanent") return true;
+      if (ban.type === "suspend" && Number(ban.until) > Date.now()) return true;
+      return false;
+    }
+
+    function formatBanMessage(ban) {
+      if (!ban || !ban.banned) return "현재 계정은 이용이 제한되었습니다.";
+
+      if (ban.type === "permanent") {
+        return `영구 밴 상태입니다. 사유: ${ban.reason || "없음"}`;
+      }
+
+      if (ban.type === "suspend") {
+        const untilText = new Date(Number(ban.until)).toLocaleString();
+        return `일시 정지 상태입니다. 해제 예정: ${untilText} / 사유: ${ban.reason || "없음"}`;
+      }
+
+      return "현재 계정은 이용이 제한되었습니다.";
+    }
+
     function updateUI() {
+      document.getElementById("profileEmoji").innerText = gameData.profileEmoji;
       document.getElementById("nickname").innerText = gameData.nickname;
       document.getElementById("publicId").innerText = gameData.publicId;
       document.getElementById("title").innerText = gameData.title;
@@ -371,6 +493,13 @@
       document.getElementById("monsterHp").innerText = gameData.monsterHp;
 
       renderMails();
+      renderTitleShop();
+      renderOwnedTitles();
+      renderCosmeticShop();
+      renderOwnedEmojis();
+      renderAchievements();
+
+      document.getElementById("adminBox").style.display = gameData.isAdmin ? "block" : "none";
     }
 
     function showMessage(text) {
@@ -385,15 +514,12 @@
       document.getElementById("rewardMessage").innerText = text;
     }
 
-    function addMail(title, message) {
-      const mail = {
-        id: String(Date.now()),
-        title: title,
-        message: message,
-        createdAt: new Date().toLocaleString()
-      };
+    function showAdminMessage(text) {
+      document.getElementById("adminMessage").innerText = text;
+    }
 
-      gameData.mails.unshift(mail);
+    function addMail(title, message) {
+      gameData.mails.unshift(createMail(title, message));
 
       if (gameData.mails.length > 20) {
         gameData.mails = gameData.mails.slice(0, 20);
@@ -419,6 +545,131 @@
       }).join("");
     }
 
+    function renderTitleShop() {
+      const titleShop = document.getElementById("titleShop");
+
+      titleShop.innerHTML = titleShopItems.map(item => {
+        const owned = hasTitle(item.name);
+
+        if (item.adminOnly) {
+          return `
+            <div class="shop-card">
+              <div class="shop-title">${item.name}</div>
+              <div>${item.desc}</div>
+              <div class="locked">관리자 전용</div>
+            </div>
+          `;
+        }
+
+        if (owned) {
+          return `
+            <div class="shop-card">
+              <div class="shop-title">${item.name}</div>
+              <div>${item.desc}</div>
+              <div class="owned">보유 중</div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="shop-card">
+            <div class="shop-title">${item.name}</div>
+            <div>${item.desc}</div>
+            <div>가격: ${item.cost}보석</div>
+            <button class="buy-btn" onclick="buyTitle('${item.name}', ${item.cost})">구매</button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderOwnedTitles() {
+      const ownedTitleList = document.getElementById("ownedTitleList");
+
+      ownedTitleList.innerHTML = gameData.ownedTitles.map(titleName => {
+        return `<button class="equip-btn" onclick="equipTitle('${titleName}')">${titleName} 장착</button>`;
+      }).join("");
+    }
+
+    function renderCosmeticShop() {
+      const cosmeticShop = document.getElementById("cosmeticShop");
+
+      cosmeticShop.innerHTML = cosmeticShopItems.map(item => {
+        const owned = hasEmoji(item.emoji);
+
+        if (owned) {
+          return `
+            <div class="shop-card">
+              <div class="shop-title">${item.emoji} ${item.name}</div>
+              <div class="owned">보유 중</div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="shop-card">
+            <div class="shop-title">${item.emoji} ${item.name}</div>
+            <div>가격: ${item.cost}보석</div>
+            <button class="buy-btn" onclick="buyEmoji('${item.emoji}', ${item.cost})">구매</button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderOwnedEmojis() {
+      const ownedEmojiList = document.getElementById("ownedEmojiList");
+
+      ownedEmojiList.innerHTML = gameData.ownedEmojis.map(emoji => {
+        return `<button class="equip-btn" onclick="equipEmoji('${emoji}')">${emoji} 장착</button>`;
+      }).join("");
+    }
+
+    function renderAchievements() {
+      const achievementList = document.getElementById("achievementList");
+
+      achievementList.innerHTML = achievementItems.map(item => {
+        const cleared = gameData.achievements[item.id] === true;
+
+        return `
+          <div class="achievement-card">
+            <div class="achievement-title">${item.name}</div>
+            <div>${item.desc}</div>
+            <div class="small-text">
+              보상:
+              ${item.rewardGem ? item.rewardGem + "보석 " : ""}
+              ${item.rewardGold ? item.rewardGold + "골드 " : ""}
+              ${item.rewardTitle ? "칭호 [" + item.rewardTitle + "]" : ""}
+            </div>
+            <div class="${cleared ? "owned" : "locked"}">
+              ${cleared ? "달성 완료" : "미달성"}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderAdminTarget() {
+      const box = document.getElementById("adminTargetInfo");
+
+      if (!adminTarget) {
+        box.innerHTML = `
+          <div class="admin-title">검색된 유저 없음</div>
+          <div>유저 ID를 입력하고 검색하세요.</div>
+        `;
+        return;
+      }
+
+      const data = adminTarget.data;
+
+      box.innerHTML = `
+        <div class="admin-title">${data.nickname || "플레이어"} / ${data.publicId}</div>
+        <div>레벨: ${data.level || 1}</div>
+        <div>골드: ${data.gold || 0}</div>
+        <div>보석: ${data.gem || 0}</div>
+        <div>칭호: ${data.title || "초보자"}</div>
+        <div>밴 상태: ${data.ban && data.ban.banned ? "제한 중" : "정상"}</div>
+      `;
+    }
+
     async function saveUserData() {
       if (!currentUser) return;
 
@@ -437,6 +688,12 @@
         firstRewardReceived: gameData.firstRewardReceived,
         lastDailyReward: gameData.lastDailyReward,
         mails: gameData.mails,
+        ownedTitles: gameData.ownedTitles,
+        ownedEmojis: gameData.ownedEmojis,
+        profileEmoji: gameData.profileEmoji,
+        achievements: gameData.achievements,
+        isAdmin: gameData.isAdmin,
+        ban: gameData.ban,
         updatedAt: serverTimestamp()
       }, { merge: true });
     }
@@ -460,8 +717,19 @@
           monsterHp: data.monsterHp || 10,
           firstRewardReceived: data.firstRewardReceived || false,
           lastDailyReward: data.lastDailyReward || 0,
-          mails: data.mails || []
+          mails: data.mails || [],
+          ownedTitles: data.ownedTitles || ["초보자"],
+          ownedEmojis: data.ownedEmojis || ["🧑‍💻"],
+          profileEmoji: data.profileEmoji || "🧑‍💻",
+          achievements: data.achievements || {},
+          isAdmin: data.isAdmin || false,
+          ban: data.ban || { banned: false, type: "", reason: "", until: 0 }
         };
+
+        if (gameData.ban && gameData.ban.type === "suspend" && gameData.ban.banned && Number(gameData.ban.until) <= Date.now()) {
+          gameData.ban = { banned: false, type: "", reason: "", until: 0 };
+          await saveUserData();
+        }
       } else {
         gameData = {
           publicId: generatePublicId(),
@@ -475,14 +743,33 @@
           monsterHp: 10,
           firstRewardReceived: false,
           lastDailyReward: 0,
-          mails: []
+          mails: [],
+          ownedTitles: ["초보자"],
+          ownedEmojis: ["🧑‍💻"],
+          profileEmoji: "🧑‍💻",
+          achievements: {},
+          isAdmin: false,
+          ban: { banned: false, type: "", reason: "", until: 0 }
         };
 
         addMail("가입 환영", "서버에서 신규 유저 등록을 완료했습니다.");
       }
 
+      if (isBanActive(gameData.ban)) {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("gameBox").style.display = "none";
+        document.getElementById("banBox").style.display = "block";
+        document.getElementById("banReason").innerText = formatBanMessage(gameData.ban);
+        return;
+      }
+
+      document.getElementById("banBox").style.display = "none";
+      document.getElementById("gameBox").style.display = "block";
+
+      checkAchievements();
       updateUI();
       await saveUserData();
+      await loadRankings();
     }
 
     function checkLevelUp() {
@@ -496,7 +783,6 @@
         leveledUp = true;
 
         addMail("레벨업 보상", `레벨 ${gameData.level} 달성! 보석 1개를 받았습니다.`);
-
         needXp = getNeedXp();
       }
 
@@ -504,6 +790,361 @@
         showMessage("레벨업! 보석 보상을 받았습니다.");
       }
     }
+
+    function checkAchievements() {
+      achievementItems.forEach(item => {
+        if (gameData.achievements[item.id]) return;
+
+        if (item.check()) {
+          gameData.achievements[item.id] = true;
+
+          if (item.rewardGem) gameData.gem += item.rewardGem;
+          if (item.rewardGold) gameData.gold += item.rewardGold;
+
+          if (item.rewardTitle && !hasTitle(item.rewardTitle)) {
+            gameData.ownedTitles.push(item.rewardTitle);
+          }
+
+          addMail("업적 달성", `[${item.name}] 업적을 달성했습니다! 보상이 지급되었습니다.`);
+        }
+      });
+    }
+
+    window.loadRankings = async function() {
+      try {
+        const usersRef = collection(db, "users");
+
+        const levelQuery = query(usersRef, orderBy("level", "desc"), limit(10));
+        const levelSnap = await getDocs(levelQuery);
+
+        let levelHtml = `<div class="rank-title">레벨 랭킹</div>`;
+
+        let levelRank = 1;
+        levelSnap.forEach(docSnap => {
+          const data = docSnap.data();
+          levelHtml += `
+            <div class="rank-card">
+              #${levelRank} ${data.profileEmoji || "🧑‍💻"} ${data.nickname || "플레이어"}
+              <br>
+              ID: ${data.publicId || "없음"} / 레벨: ${data.level || 1}
+            </div>
+          `;
+          levelRank++;
+        });
+
+        const gemQuery = query(usersRef, orderBy("gem", "desc"), limit(10));
+        const gemSnap = await getDocs(gemQuery);
+
+        let gemHtml = `<div class="rank-title">보석 랭킹</div>`;
+
+        let gemRank = 1;
+        gemSnap.forEach(docSnap => {
+          const data = docSnap.data();
+          gemHtml += `
+            <div class="rank-card">
+              #${gemRank} ${data.profileEmoji || "🧑‍💻"} ${data.nickname || "플레이어"}
+              <br>
+              ID: ${data.publicId || "없음"} / 보석: ${data.gem || 0}
+            </div>
+          `;
+          gemRank++;
+        });
+
+        document.getElementById("levelRanking").innerHTML = levelHtml;
+        document.getElementById("gemRanking").innerHTML = gemHtml;
+        document.getElementById("rankMessage").innerText = "랭킹을 불러왔습니다.";
+      } catch (error) {
+        document.getElementById("rankMessage").innerText = "랭킹 불러오기 실패: " + error.message;
+      }
+    };
+
+    window.buyTitle = async function(titleName, cost) {
+      if (hasTitle(titleName)) {
+        showMessage("이미 보유한 칭호입니다.");
+        return;
+      }
+
+      if (gameData.gem < cost) {
+        showMessage("보석이 부족합니다.");
+        return;
+      }
+
+      gameData.gem -= cost;
+      gameData.ownedTitles.push(titleName);
+
+      addMail("칭호 구매", `[${titleName}] 칭호를 구매했습니다.`);
+      showMessage(`[${titleName}] 칭호를 구매했습니다.`);
+
+      updateUI();
+      await saveUserData();
+    };
+
+    window.equipTitle = async function(titleName) {
+      if (!hasTitle(titleName)) {
+        showMessage("보유하지 않은 칭호입니다.");
+        return;
+      }
+
+      gameData.title = titleName;
+      showMessage(`[${titleName}] 칭호를 장착했습니다.`);
+
+      updateUI();
+      await saveUserData();
+    };
+
+    window.buyEmoji = async function(emoji, cost) {
+      if (hasEmoji(emoji)) {
+        showMessage("이미 보유한 이모지입니다.");
+        return;
+      }
+
+      if (gameData.gem < cost) {
+        showMessage("보석이 부족합니다.");
+        return;
+      }
+
+      gameData.gem -= cost;
+      gameData.ownedEmojis.push(emoji);
+
+      addMail("꾸미기 구매", `${emoji} 프로필 이모지를 구매했습니다.`);
+      showMessage(`${emoji} 이모지를 구매했습니다.`);
+
+      updateUI();
+      await saveUserData();
+    };
+
+    window.equipEmoji = async function(emoji) {
+      if (!hasEmoji(emoji)) {
+        showMessage("보유하지 않은 이모지입니다.");
+        return;
+      }
+
+      gameData.profileEmoji = emoji;
+      showMessage(`${emoji} 이모지를 장착했습니다.`);
+
+      updateUI();
+      await saveUserData();
+    };
+
+    window.adminSearchUser = async function() {
+      if (!gameData.isAdmin) {
+        showAdminMessage("관리자 권한이 없습니다.");
+        return;
+      }
+
+      const targetId = document.getElementById("adminTargetId").value.trim();
+
+      if (!targetId) {
+        showAdminMessage("유저 ID를 입력하세요.");
+        return;
+      }
+
+      try {
+        const q = query(collection(db, "users"), where("publicId", "==", targetId), limit(1));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          adminTarget = null;
+          renderAdminTarget();
+          showAdminMessage("유저를 찾지 못했습니다.");
+          return;
+        }
+
+        const targetDoc = snap.docs[0];
+        adminTarget = {
+          uid: targetDoc.id,
+          data: targetDoc.data()
+        };
+
+        renderAdminTarget();
+        showAdminMessage("유저를 찾았습니다.");
+      } catch (error) {
+        showAdminMessage("유저 검색 실패: " + error.message);
+      }
+    };
+
+    async function updateAdminTarget(partialData, mailTitle, mailMessage) {
+      if (!adminTarget) {
+        showAdminMessage("먼저 유저를 검색하세요.");
+        return;
+      }
+
+      const targetRef = doc(db, "users", adminTarget.uid);
+      const oldData = adminTarget.data;
+      const oldMails = oldData.mails || [];
+
+      const updateData = {
+        ...partialData,
+        updatedAt: serverTimestamp()
+      };
+
+      if (mailTitle && mailMessage) {
+        updateData.mails = [createMail(mailTitle, mailMessage), ...oldMails].slice(0, 20);
+      }
+
+      await setDoc(targetRef, updateData, { merge: true });
+
+      const refreshed = await getDoc(targetRef);
+      adminTarget.data = refreshed.data();
+
+      renderAdminTarget();
+    }
+
+    window.adminGiveGem = async function() {
+      if (!gameData.isAdmin) {
+        showAdminMessage("관리자 권한이 없습니다.");
+        return;
+      }
+
+      const amount = Number(document.getElementById("adminGemAmount").value);
+
+      if (!adminTarget || !amount || amount <= 0) {
+        showAdminMessage("유저 검색 후 올바른 보석 수량을 입력하세요.");
+        return;
+      }
+
+      const currentGem = Number(adminTarget.data.gem || 0);
+      const newGem = currentGem + amount;
+
+      await updateAdminTarget(
+        { gem: newGem },
+        "관리자 보상",
+        `관리자가 보석 ${amount}개를 지급했습니다.`
+      );
+
+      showAdminMessage(`보석 ${amount}개를 지급했습니다.`);
+    };
+
+    window.adminTakeGem = async function() {
+      if (!gameData.isAdmin) {
+        showAdminMessage("관리자 권한이 없습니다.");
+        return;
+      }
+
+      const amount = Number(document.getElementById("adminGemAmount").value);
+
+      if (!adminTarget || !amount || amount <= 0) {
+        showAdminMessage("유저 검색 후 올바른 보석 수량을 입력하세요.");
+        return;
+      }
+
+      const currentGem = Number(adminTarget.data.gem || 0);
+      const newGem = Math.max(0, currentGem - amount);
+
+      await updateAdminTarget(
+        { gem: newGem },
+        "관리자 알림",
+        `관리자가 보석 ${amount}개를 회수했습니다.`
+      );
+
+      showAdminMessage(`보석 ${amount}개를 회수했습니다.`);
+    };
+
+    window.adminSendMail = async function() {
+      if (!gameData.isAdmin) {
+        showAdminMessage("관리자 권한이 없습니다.");
+        return;
+      }
+
+      const title = document.getElementById("adminMailTitle").value.trim();
+      const message = document.getElementById("adminMailMessage").value.trim();
+
+      if (!adminTarget || !title || !message) {
+        showAdminMessage("유저 검색 후 우편 제목과 내용을 입력하세요.");
+        return;
+      }
+
+      await updateAdminTarget({}, title, message);
+      showAdminMessage("우편을 보냈습니다.");
+    };
+
+    window.adminBanPermanent = async function() {
+      if (!gameData.isAdmin) {
+        showAdminMessage("관리자 권한이 없습니다.");
+        return;
+      }
+
+      const reason = document.getElementById("adminBanReason").value.trim() || "운영 정책 위반";
+
+      if (!adminTarget) {
+        showAdminMessage("먼저 유저를 검색하세요.");
+        return;
+      }
+
+      await updateAdminTarget(
+        {
+          ban: {
+            banned: true,
+            type: "permanent",
+            reason: reason,
+            until: 0
+          }
+        },
+        "계정 이용 제한",
+        `계정이 영구 밴되었습니다. 사유: ${reason}`
+      );
+
+      showAdminMessage("영구 밴 처리했습니다.");
+    };
+
+    window.adminSuspendDays = async function() {
+      if (!gameData.isAdmin) {
+        showAdminMessage("관리자 권한이 없습니다.");
+        return;
+      }
+
+      const days = Number(document.getElementById("adminSuspendDays").value);
+      const reason = document.getElementById("adminBanReason").value.trim() || "운영 정책 위반";
+
+      if (!adminTarget || !days || days <= 0) {
+        showAdminMessage("유저 검색 후 정지 일수를 입력하세요.");
+        return;
+      }
+
+      const until = Date.now() + days * 24 * 60 * 60 * 1000;
+
+      await updateAdminTarget(
+        {
+          ban: {
+            banned: true,
+            type: "suspend",
+            reason: reason,
+            until: until
+          }
+        },
+        "계정 이용 제한",
+        `${days}일 정지되었습니다. 사유: ${reason}`
+      );
+
+      showAdminMessage(`${days}일 정지 처리했습니다.`);
+    };
+
+    window.adminUnban = async function() {
+      if (!gameData.isAdmin) {
+        showAdminMessage("관리자 권한이 없습니다.");
+        return;
+      }
+
+      if (!adminTarget) {
+        showAdminMessage("먼저 유저를 검색하세요.");
+        return;
+      }
+
+      await updateAdminTarget(
+        {
+          ban: {
+            banned: false,
+            type: "",
+            reason: "",
+            until: 0
+          }
+        },
+        "계정 제한 해제",
+        "관리자가 계정 제한을 해제했습니다."
+      );
+
+      showAdminMessage("정지/밴을 해제했습니다.");
+    };
 
     window.signUp = async function() {
       const email = document.getElementById("email").value;
@@ -558,12 +1199,14 @@
         showMessage("슬라임을 처치했습니다! 골드 +5, XP +10");
 
         checkLevelUp();
+        checkAchievements();
       } else {
         showMessage("슬라임을 공격했습니다!");
       }
 
       updateUI();
       await saveUserData();
+      await loadRankings();
     };
 
     window.upgradeAttack = async function() {
@@ -572,6 +1215,7 @@
         gameData.attack += 1;
 
         showMessage("공격력이 증가했습니다!");
+        checkAchievements();
       } else {
         showMessage("골드가 부족합니다.");
       }
@@ -592,8 +1236,10 @@
         addMail("첫 접속 보상", "서버에서 첫 접속 보상 100보석을 지급했습니다.");
         showRewardMessage("첫 접속 보상으로 100보석을 받았습니다!");
 
+        checkAchievements();
         updateUI();
         await saveUserData();
+        await loadRankings();
         return;
       }
 
@@ -606,8 +1252,10 @@
         addMail("일일보상", "서버에서 일일보상 10보석을 지급했습니다.");
         showRewardMessage("일일보상으로 10보석을 받았습니다!");
 
+        checkAchievements();
         updateUI();
         await saveUserData();
+        await loadRankings();
       } else {
         const remaining = oneDay - passedTime;
         const hours = Math.floor(remaining / (60 * 60 * 1000));
@@ -622,7 +1270,7 @@
         currentUser = user;
 
         document.getElementById("loginBox").style.display = "none";
-        document.getElementById("gameBox").style.display = "block";
+        document.getElementById("banBox").style.display = "none";
 
         await loadUserData(user);
         showMessage("로그인 완료! 게임 데이터를 불러왔습니다.");
@@ -631,6 +1279,7 @@
 
         document.getElementById("loginBox").style.display = "block";
         document.getElementById("gameBox").style.display = "none";
+        document.getElementById("banBox").style.display = "none";
       }
     });
   </script>
