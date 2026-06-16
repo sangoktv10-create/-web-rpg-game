@@ -269,7 +269,7 @@
       <div class="box">
         <h2>인벤토리</h2>
         <p>장착 무기: <span id="equippedWeapon">없음</span></p>
-        <p class="small-text">몬스터를 처치하면 일정 확률로 장비 아이템이 드랍됩니다.</p>
+        <p class="small-text">기본 아이템은 나무 검이며, 몬스터를 처치하면 일정 확률로 장비 아이템이 드랍됩니다.</p>
         <div id="inventoryList">
           <p>아이템이 없습니다.</p>
         </div>
@@ -430,6 +430,7 @@
         type: "weapon",
         rarity: "common",
         attackBonus: 1,
+        maxAttack: 10,
         sellGold: 5,
         dropChance: 45
       },
@@ -528,18 +529,97 @@
       return Number(gameData.attack || 1) + weaponAttack;
     }
 
+    function calculateItemAttack(item) {
+      const baseAttack = Number(item.baseAttack || item.attackBonus || 1);
+      const enhanceLevel = Number(item.enhanceLevel || 0);
+
+      if (item.id === "wood_sword") {
+        return Math.min(baseAttack + enhanceLevel, 10);
+      }
+
+      return baseAttack + enhanceLevel;
+    }
+
+    function getItemDisplayName(item) {
+      const enhanceLevel = Number(item.enhanceLevel || 0);
+      const enhanceText = enhanceLevel > 0 ? `+${enhanceLevel}강` : "";
+      return `${item.icon || "🎒"} ${item.name}${enhanceText}`;
+    }
+
     function createItem(baseItem) {
-      return {
+      const item = {
         instanceId: String(Date.now()) + "-" + Math.floor(Math.random() * 100000),
         id: baseItem.id,
         name: baseItem.name,
         icon: baseItem.icon,
         type: baseItem.type,
         rarity: baseItem.rarity,
-        attackBonus: baseItem.attackBonus,
+        baseAttack: Number(baseItem.attackBonus || 1),
+        maxAttack: Number(baseItem.maxAttack || 999),
+        enhanceLevel: 0,
+        maxEnhance: 99,
         sellGold: baseItem.sellGold,
         createdAt: new Date().toLocaleString()
       };
+
+      item.attackBonus = calculateItemAttack(item);
+
+      return item;
+    }
+
+    function createStarterInventory() {
+      const woodSwordBase = itemPool.find(item => item.id === "wood_sword") || itemPool[0];
+      const woodSword = createItem(woodSwordBase);
+
+      return {
+        inventory: [woodSword],
+        equippedWeaponId: woodSword.instanceId
+      };
+    }
+
+    function normalizeInventory(inventory, equippedWeaponId) {
+      let normalizedInventory = Array.isArray(inventory) ? inventory : [];
+
+      if (normalizedInventory.length === 0) {
+        return createStarterInventory();
+      }
+
+      normalizedInventory = normalizedInventory.map(item => {
+        const baseItem = itemPool.find(base => base.id === item.id);
+        const baseAttack = Number(item.baseAttack || item.attackBonus || (baseItem ? baseItem.attackBonus : 1));
+        const enhanceLevel = Number(item.enhanceLevel || 0);
+
+        const normalized = {
+          ...item,
+          baseAttack: baseAttack,
+          enhanceLevel: enhanceLevel,
+          maxEnhance: Number(item.maxEnhance || 99),
+          maxAttack: Number(item.maxAttack || (baseItem && baseItem.maxAttack) || 999)
+        };
+
+        normalized.attackBonus = calculateItemAttack(normalized);
+
+        return normalized;
+      });
+
+      let validEquippedWeaponId = equippedWeaponId || "";
+
+      const hasEquipped = normalizedInventory.some(item => item.instanceId === validEquippedWeaponId);
+
+      if (!hasEquipped) {
+        const firstWeapon = normalizedInventory.find(item => item.type === "weapon");
+        validEquippedWeaponId = firstWeapon ? firstWeapon.instanceId : "";
+      }
+
+      return {
+        inventory: normalizedInventory,
+        equippedWeaponId: validEquippedWeaponId
+      };
+    }
+
+    function getEnhanceCost(item) {
+      const enhanceLevel = Number(item.enhanceLevel || 0);
+      return 10 + enhanceLevel * 5;
     }
 
     function rollDropItem() {
@@ -799,16 +879,22 @@
 
       inventoryList.innerHTML = gameData.inventory.map(item => {
         const equipped = gameData.equippedWeaponId === item.instanceId;
+        const enhanceLevel = Number(item.enhanceLevel || 0);
+        const enhanceCost = getEnhanceCost(item);
+        const attackLimitText = item.id === "wood_sword" ? " / 나무검 공격력 최대 10" : "";
 
         return `
           <div class="item-card item-${item.rarity || "common"}">
-            <div class="shop-title">${item.icon || "🎒"} ${item.name}</div>
+            <div class="shop-title">${getItemDisplayName(item)}</div>
             <div>등급: ${getRarityName(item.rarity)}</div>
-            <div>공격력 보너스: +${item.attackBonus || 0}</div>
+            <div>강화: +${enhanceLevel}강 / 최대 +99강</div>
+            <div>공격력 보너스: +${item.attackBonus || 0}${attackLimitText}</div>
+            <div>강화 비용: ${enhanceCost}골드</div>
             <div>판매 가격: ${item.sellGold || 0}골드</div>
             <div class="${equipped ? "owned" : "small-text"}">${equipped ? "장착 중" : "미장착"}</div>
             <button class="equip-btn" onclick="equipItem('${item.instanceId}')">장착</button>
-            <button class="buy-btn" onclick="sellItem('${item.instanceId}')">판매</button>
+            <button class="buy-btn" onclick="enhanceItem('${item.instanceId}')">강화</button>
+            <button class="danger-btn" onclick="sellItem('${item.instanceId}')">판매</button>
           </div>
         `;
       }).join("");
@@ -829,8 +915,46 @@
 
       gameData.equippedWeaponId = instanceId;
 
-      addMail("장비 장착", `${item.name}을 장착했습니다.`);
-      showMessage(`${item.name}을 장착했습니다. 총 공격력: ${getTotalAttack()}`);
+      addMail("장비 장착", `${getItemDisplayName(item)}을 장착했습니다.`);
+      showMessage(`${getItemDisplayName(item)}을 장착했습니다. 총 공격력: ${getTotalAttack()}`);
+
+      updateUI();
+      await saveUserData();
+    };
+
+    window.enhanceItem = async function(instanceId) {
+      const item = gameData.inventory.find(target => target.instanceId === instanceId);
+
+      if (!item) {
+        showMessage("아이템을 찾을 수 없습니다.");
+        return;
+      }
+
+      const enhanceLevel = Number(item.enhanceLevel || 0);
+
+      if (enhanceLevel >= 99) {
+        showMessage("이미 최대 강화입니다. 최대 강화는 +99강입니다.");
+        return;
+      }
+
+      const cost = getEnhanceCost(item);
+
+      if (gameData.gold < cost) {
+        showMessage(`골드가 부족합니다. 강화 비용: ${cost}골드`);
+        return;
+      }
+
+      gameData.gold -= cost;
+      item.enhanceLevel = enhanceLevel + 1;
+      item.attackBonus = calculateItemAttack(item);
+
+      addMail("아이템 강화", `${getItemDisplayName(item)} 강화에 성공했습니다.`);
+
+      if (item.id === "wood_sword" && item.attackBonus >= 10) {
+        showMessage(`${getItemDisplayName(item)} 강화 성공! 나무검 공격력은 최대 10까지만 올라갑니다.`);
+      } else {
+        showMessage(`${getItemDisplayName(item)} 강화 성공!`);
+      }
 
       updateUI();
       await saveUserData();
@@ -853,8 +977,8 @@
       gameData.gold += Number(item.sellGold || 0);
       gameData.inventory.splice(itemIndex, 1);
 
-      addMail("아이템 판매", `${item.name}을 판매하고 ${item.sellGold || 0}골드를 받았습니다.`);
-      showMessage(`${item.name}을 판매했습니다.`);
+      addMail("아이템 판매", `${getItemDisplayName(item)}을 판매하고 ${item.sellGold || 0}골드를 받았습니다.`);
+      showMessage(`${getItemDisplayName(item)}을 판매했습니다.`);
 
       updateUI();
       await saveUserData();
@@ -944,6 +1068,8 @@
       if (userSnap.exists()) {
         const data = userSnap.data();
 
+        const normalizedInventory = normalizeInventory(data.inventory, data.equippedWeaponId);
+
         gameData = {
           publicId: data.publicId || generatePublicId(),
           nickname: data.nickname || user.displayName || "플레이어",
@@ -960,8 +1086,8 @@
           ownedTitles: data.ownedTitles || ["초보자"],
           ownedEmojis: data.ownedEmojis || ["🧑‍💻"],
           profileEmoji: data.profileEmoji || "🧑‍💻",
-          inventory: data.inventory || [],
-          equippedWeaponId: data.equippedWeaponId || "",
+          inventory: normalizedInventory.inventory,
+          equippedWeaponId: normalizedInventory.equippedWeaponId,
           achievements: data.achievements || {},
           isAdmin: data.isAdmin || false,
           ban: data.ban || { banned: false, type: "", reason: "", until: 0 }
@@ -972,6 +1098,8 @@
           await saveUserData();
         }
       } else {
+        const starterInventory = createStarterInventory();
+
         gameData = {
           publicId: generatePublicId(),
           nickname: user.displayName || "플레이어",
@@ -988,8 +1116,8 @@
           ownedTitles: ["초보자"],
           ownedEmojis: ["🧑‍💻"],
           profileEmoji: "🧑‍💻",
-          inventory: [],
-          equippedWeaponId: "",
+          inventory: starterInventory.inventory,
+          equippedWeaponId: starterInventory.equippedWeaponId,
           achievements: {},
           isAdmin: false,
           ban: { banned: false, type: "", reason: "", until: 0 }
@@ -1510,8 +1638,8 @@
 
         if (droppedItem) {
           gameData.inventory.push(droppedItem);
-          addMail("아이템 획득", `${droppedItem.icon} ${droppedItem.name}을 획득했습니다.`);
-          showMessage(`슬라임 처치! 골드 +5, XP +10, 아이템 [${droppedItem.name}] 획득!`);
+          addMail("아이템 획득", `${getItemDisplayName(droppedItem)}을 획득했습니다.`);
+          showMessage(`슬라임 처치! 골드 +5, XP +10, 아이템 [${getItemDisplayName(droppedItem)}] 획득!`);
         } else {
           showMessage("슬라임을 처치했습니다! 골드 +5, XP +10");
         }
