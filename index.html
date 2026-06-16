@@ -213,6 +213,157 @@
 
     #gameBox, #banBox, #adminBox { display: none; }
 
+    .menu-bar {
+      position: sticky;
+      top: 8px;
+      z-index: 20;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.82);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+      box-shadow: 0 0 18px rgba(37, 99, 235, 0.28);
+      backdrop-filter: blur(8px);
+    }
+
+    .menu-bar button {
+      flex: 0 0 auto;
+      padding: 9px 12px;
+      font-size: 13px;
+      margin: 0;
+      border-radius: 999px;
+    }
+
+    .top-btn {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 30;
+      width: auto !important;
+      padding: 12px 14px;
+      border-radius: 999px;
+    }
+
+    .inventory-top {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .equipment-panel, .item-detail-panel {
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid rgba(96, 165, 250, 0.3);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .inventory-controls {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin: 12px 0;
+      padding-bottom: 4px;
+    }
+
+    .inventory-controls button {
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 8px 11px;
+      font-size: 12px;
+      border-radius: 999px;
+    }
+
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .inventory-slot {
+      min-height: 92px;
+      border-radius: 14px;
+      padding: 8px;
+      cursor: pointer;
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      transition: 0.15s;
+      position: relative;
+    }
+
+    .inventory-slot:hover {
+      transform: translateY(-2px);
+      background: rgba(30, 41, 59, 0.9);
+    }
+
+    .inventory-slot.selected-slot {
+      box-shadow: 0 0 16px rgba(96, 165, 250, 0.65);
+      transform: translateY(-2px);
+    }
+
+    .slot-icon {
+      font-size: 25px;
+      margin-bottom: 4px;
+    }
+
+    .slot-name {
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+
+    .slot-grade {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-top: 3px;
+    }
+
+    .equipped-badge {
+      position: absolute;
+      right: 6px;
+      top: 6px;
+      background: rgba(34, 197, 94, 0.9);
+      color: #052e16;
+      border-radius: 999px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .detail-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .detail-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .detail-actions button {
+      margin: 0;
+      font-size: 13px;
+      padding: 9px 8px;
+    }
+
+    @media (min-width: 650px) {
+      .inventory-top {
+        grid-template-columns: 0.9fr 1.1fr;
+      }
+
+      .inventory-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
     @media (max-width: 480px) {
       .container { width: 94%; margin: 20px auto; padding: 18px; }
       h1 { font-size: 27px; }
@@ -248,7 +399,22 @@
     </div>
 
     <div id="gameBox">
-      <div class="box profile-card">
+      <div class="menu-bar">
+        <button onclick="goSection('profileSection')">프로필</button>
+        <button onclick="goSection('battleSection')">전투</button>
+        <button onclick="goSection('inventorySection')">인벤토리</button>
+        <button onclick="goSection('rewardSection')">일일보상</button>
+        <button onclick="goSection('titleSection')">칭호</button>
+        <button onclick="goSection('achievementSection')">업적</button>
+        <button onclick="goSection('cosmeticSection')">꾸미기</button>
+        <button onclick="goSection('rankingSection')">랭킹</button>
+        <button onclick="goSection('mailSection')">우편함</button>
+        <button id="adminMenuButton" onclick="goSection('adminBox')">관리자</button>
+      </div>
+
+      <button class="top-btn" onclick="goTop()">▲</button>
+
+      <div id="profileSection" class="box profile-card">
         <h2>프로필</h2>
         <div class="profile-emoji" id="profileEmoji">🧑‍💻</div>
         <p>닉네임: <span id="nickname">플레이어</span></p>
@@ -263,7 +429,7 @@
         <p>공격력: <span id="attack">1</span></p>
       </div>
 
-      <div class="box">
+      <div id="battleSection" class="box">
         <h2 id="monsterName">슬라임</h2>
         <p>층: <span id="floor">1</span>층</p>
         <p id="bossLabel" class="boss-text"></p>
@@ -271,27 +437,50 @@
         <button onclick="attackMonster()">공격하기</button>
       </div>
 
-      <div class="box">
+      <div id="upgradeSection" class="box">
         <h2>강화</h2>
         <button onclick="upgradeAttack()">공격력 강화 10골드</button>
       </div>
 
-      <div class="box">
+      <div id="inventorySection" class="box">
         <h2>인벤토리</h2>
-        <p>장착 무기: <span id="equippedWeapon">없음</span></p>
-        <p class="small-text">기본 아이템은 나무 검이며, 층을 올라가면서 더 강한 검과 보스를 만날 수 있습니다. 관리자는 모든 검을 자동 보유합니다.</p>
-        <div id="inventoryList">
+        <p class="small-text">일반 게임처럼 아이템 칸을 눌러 선택하고, 오른쪽 상세창에서 장착/강화/판매를 할 수 있습니다.</p>
+
+        <div class="inventory-top">
+          <div class="equipment-panel">
+            <h3>장착 장비</h3>
+            <p>무기: <span id="equippedWeapon">없음</span></p>
+            <p>총 공격력: <span id="inventoryTotalAttack">1</span></p>
+          </div>
+
+          <div id="itemDetail" class="item-detail-panel">
+            <p>아이템을 선택하세요.</p>
+          </div>
+        </div>
+
+        <div class="inventory-controls">
+          <button onclick="setInventoryFilter('all')">전체</button>
+          <button onclick="setInventoryFilter('common')">일반</button>
+          <button onclick="setInventoryFilter('rare')">희귀</button>
+          <button onclick="setInventoryFilter('epic')">영웅</button>
+          <button onclick="setInventoryFilter('legendary')">전설</button>
+          <button onclick="setInventoryFilter('mythic')">신화</button>
+          <button onclick="setInventoryFilter('ancient')">고대</button>
+          <button onclick="sortInventory()">정렬</button>
+        </div>
+
+        <div id="inventoryList" class="inventory-grid">
           <p>아이템이 없습니다.</p>
         </div>
       </div>
 
-      <div class="box">
+      <div id="rewardSection" class="box">
         <h2>일일보상</h2>
         <button class="reward-btn" onclick="dailyReward()">일일보상 받기</button>
         <p id="rewardMessage">첫 보상은 100보석, 이후 24시간마다 10보석입니다.</p>
       </div>
 
-      <div class="box">
+      <div id="titleSection" class="box">
         <h2>칭호 상점</h2>
         <div id="titleShop"></div>
 
@@ -299,12 +488,12 @@
         <div id="ownedTitleList"></div>
       </div>
 
-      <div class="box">
+      <div id="achievementSection" class="box">
         <h2>업적</h2>
         <div id="achievementList"></div>
       </div>
 
-      <div class="box">
+      <div id="cosmeticSection" class="box">
         <h2>꾸미기 상점</h2>
         <div id="cosmeticShop"></div>
 
@@ -312,7 +501,7 @@
         <div id="ownedEmojiList"></div>
       </div>
 
-      <div class="box">
+      <div id="rankingSection" class="box">
         <h2>랭킹</h2>
         <button onclick="loadRankings()">랭킹 새로고침</button>
         <p id="rankMessage">레벨 랭킹과 보석 랭킹을 불러옵니다.</p>
@@ -320,7 +509,7 @@
         <div id="gemRanking"></div>
       </div>
 
-      <div class="box">
+      <div id="mailSection" class="box">
         <h2>우편함</h2>
         <div id="mailList">
           <p>우편이 없습니다.</p>
@@ -435,79 +624,288 @@
     const itemPool = [
       {
         id: "wood_sword",
-        name: "나무 검",
+        name: "나무검",
         icon: "🗡️",
         type: "weapon",
         rarity: "common",
         attackBonus: 1,
         maxAttack: 10,
         sellGold: 5,
-        dropChance: 50,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "hard_wood_sword",
+        name: "단단한 나무검",
+        icon: "🪵",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 2,
+        sellGold: 6,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "old_iron_sword",
+        name: "낡은 철검",
+        icon: "⚔️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 2,
+        sellGold: 7,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "training_sword",
+        name: "훈련용 검",
+        icon: "🗡️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 2,
+        sellGold: 6,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "adventurer_sword",
+        name: "모험가의 검",
+        icon: "🗡️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 3,
+        sellGold: 8,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "beginner_sword",
+        name: "초보자의 검",
+        icon: "🗡️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 2,
+        sellGold: 6,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "rusty_sword",
+        name: "녹슨 검",
+        icon: "⚔️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 2,
+        sellGold: 5,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "bronze_sword",
+        name: "청동검",
+        icon: "🟤",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 3,
+        sellGold: 9,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "light_sword_common",
+        name: "가벼운 검",
+        icon: "🗡️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 3,
+        sellGold: 8,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "old_knight_sword",
+        name: "오래된 기사검",
+        icon: "⚔️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 4,
+        sellGold: 10,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "sharp_iron_sword",
+        name: "날카로운 철검",
+        icon: "⚔️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 4,
+        sellGold: 12,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "enhanced_iron_sword",
+        name: "강화 철검",
+        icon: "⚔️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 5,
+        sellGold: 14,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "steel_sword",
+        name: "강철검",
+        icon: "⚔️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 5,
+        sellGold: 15,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "silver_iron_sword",
+        name: "은빛 철검",
+        icon: "⚔️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 6,
+        sellGold: 16,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "battle_sword",
+        name: "전투용 검",
+        icon: "⚔️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 6,
+        sellGold: 18,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "soldier_sword",
+        name: "병사의 검",
+        icon: "🛡️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 6,
+        sellGold: 18,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "knight_order_sword",
+        name: "기사단 검",
+        icon: "🛡️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 7,
+        sellGold: 20,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "mercenary_sword",
+        name: "용병의 검",
+        icon: "⚔️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 7,
+        sellGold: 21,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "guardian_sword",
+        name: "수호자의 검",
+        icon: "🛡️",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 8,
+        sellGold: 24,
+        dropChance: 2.50,
+        minFloor: 1
+      },
+      {
+        id: "hunter_sword",
+        name: "사냥꾼의 검",
+        icon: "🏹",
+        type: "weapon",
+        rarity: "common",
+        attackBonus: 8,
+        sellGold: 24,
+        dropChance: 2.50,
         minFloor: 1
       },
       {
         id: "iron_sword",
-        name: "철 검",
+        name: "철검",
         icon: "⚔️",
         type: "weapon",
         rarity: "rare",
-        attackBonus: 5,
-        sellGold: 20,
+        attackBonus: 12,
+        sellGold: 40,
         dropChance: 20,
         minFloor: 3
       },
       {
         id: "diamond_sword",
-        name: "다이아 검",
+        name: "다이아검",
         icon: "💎",
         type: "weapon",
         rarity: "epic",
-        attackBonus: 12,
-        sellGold: 60,
+        attackBonus: 25,
+        sellGold: 90,
         dropChance: 10,
         minFloor: 6
       },
       {
         id: "emerald_sword",
-        name: "에메랄드 검",
+        name: "에메랄드검",
         icon: "💚",
         type: "weapon",
         rarity: "epic",
-        attackBonus: 18,
-        sellGold: 90,
+        attackBonus: 35,
+        sellGold: 130,
         dropChance: 7.5,
         minFloor: 9
       },
       {
         id: "nether_sword",
-        name: "네더 검",
+        name: "네더검",
         icon: "🌋",
         type: "weapon",
         rarity: "legendary",
-        attackBonus: 30,
-        sellGold: 160,
+        attackBonus: 50,
+        sellGold: 220,
         dropChance: 5,
         minFloor: 13
       },
       {
         id: "light_sword",
-        name: "라이트 검",
+        name: "라이트검",
         icon: "✨",
         type: "weapon",
         rarity: "mythic",
-        attackBonus: 45,
-        sellGold: 250,
+        attackBonus: 70,
+        sellGold: 350,
         dropChance: 3.1,
         minFloor: 18
       },
       {
         id: "red_light_sword",
-        name: "붉은빛 검",
+        name: "붉은빛검",
         icon: "🔴",
         type: "weapon",
         rarity: "ancient",
-        attackBonus: 70,
-        sellGold: 500,
+        attackBonus: 100,
+        sellGold: 700,
         dropChance: 0.1,
         minFloor: 25
       }
@@ -831,6 +1229,11 @@
       renderAchievements();
 
       document.getElementById("adminBox").style.display = gameData.isAdmin ? "block" : "none";
+
+      const adminMenuButton = document.getElementById("adminMenuButton");
+      if (adminMenuButton) {
+        adminMenuButton.style.display = gameData.isAdmin ? "inline-block" : "none";
+      }
     }
 
     function showMessage(text) {
@@ -1004,36 +1407,120 @@
       const equippedWeapon = getEquippedWeapon();
 
       document.getElementById("equippedWeapon").innerText = equippedWeapon
-        ? `${equippedWeapon.icon} ${equippedWeapon.name} (+${equippedWeapon.attackBonus})`
+        ? `${getItemDisplayName(equippedWeapon)} (+${equippedWeapon.attackBonus})`
         : "없음";
 
-      if (!gameData.inventory || gameData.inventory.length === 0) {
+      const inventoryTotalAttack = document.getElementById("inventoryTotalAttack");
+      if (inventoryTotalAttack) {
+        inventoryTotalAttack.innerText = getTotalAttack();
+      }
+
+      const items = Array.isArray(gameData.inventory) ? gameData.inventory : [];
+
+      if (items.length === 0) {
         inventoryList.innerHTML = "<p>아이템이 없습니다.</p>";
+        renderItemDetail(null);
         return;
       }
 
-      inventoryList.innerHTML = gameData.inventory.map(item => {
-        const equipped = gameData.equippedWeaponId === item.instanceId;
-        const enhanceLevel = Number(item.enhanceLevel || 0);
-        const enhanceCost = getEnhanceCost(item);
-        const attackLimitText = item.id === "wood_sword" ? " / 나무검 공격력 최대 10" : "";
+      if (!selectedInventoryItemId || !items.some(item => item.instanceId === selectedInventoryItemId)) {
+        selectedInventoryItemId = gameData.equippedWeaponId || items[0].instanceId;
+      }
 
-        return `
-          <div class="item-card item-${item.rarity || "common"}">
-            <div class="shop-title">${getItemDisplayName(item)}</div>
-            <div>등급: ${getRarityName(item.rarity)}</div>
-            <div>강화: +${enhanceLevel}강 / 최대 +99강</div>
-            <div>공격력 보너스: +${item.attackBonus || 0}${attackLimitText}</div>
-            <div>강화 비용: ${enhanceCost}골드</div>
-            <div>판매 가격: ${item.sellGold || 0}골드</div>
-            <div class="${equipped ? "owned" : "small-text"}">${equipped ? "장착 중" : "미장착"}</div>
-            <button class="equip-btn" onclick="equipItem('${item.instanceId}')">장착</button>
-            <button class="buy-btn" onclick="enhanceItem('${item.instanceId}')">강화</button>
-            <button class="danger-btn" onclick="sellItem('${item.instanceId}')">판매</button>
-          </div>
-        `;
-      }).join("");
+      const filteredItems = inventoryFilter === "all"
+        ? items
+        : items.filter(item => item.rarity === inventoryFilter);
+
+      if (filteredItems.length === 0) {
+        inventoryList.innerHTML = "<p>이 등급의 아이템이 없습니다.</p>";
+      } else {
+        inventoryList.innerHTML = filteredItems.map(item => {
+          const equipped = gameData.equippedWeaponId === item.instanceId;
+          const selected = selectedInventoryItemId === item.instanceId;
+
+          return `
+            <div class="inventory-slot item-${item.rarity || "common"} ${selected ? "selected-slot" : ""}" onclick="selectInventoryItem('${item.instanceId}')">
+              ${equipped ? `<div class="equipped-badge">장착</div>` : ""}
+              <div class="slot-icon">${item.icon || "🎒"}</div>
+              <div class="slot-name">${item.name}${Number(item.enhanceLevel || 0) > 0 ? `+${item.enhanceLevel}` : ""}</div>
+              <div class="slot-grade">${getRarityName(item.rarity)}</div>
+              <div class="slot-grade">공격 +${item.attackBonus || 0}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      const selectedItem = items.find(item => item.instanceId === selectedInventoryItemId) || null;
+      renderItemDetail(selectedItem);
     }
+
+    function renderItemDetail(item) {
+      const itemDetail = document.getElementById("itemDetail");
+
+      if (!itemDetail) return;
+
+      if (!item) {
+        itemDetail.innerHTML = "<p>아이템을 선택하세요.</p>";
+        return;
+      }
+
+      const equipped = gameData.equippedWeaponId === item.instanceId;
+      const enhanceLevel = Number(item.enhanceLevel || 0);
+      const enhanceCost = getEnhanceCost(item);
+      const attackLimitText = item.id === "wood_sword" ? " / 나무검 공격력 최대 10" : "";
+
+      itemDetail.innerHTML = `
+        <div class="detail-title">${getItemDisplayName(item)}</div>
+        <div>등급: ${getRarityName(item.rarity)}</div>
+        <div>종류: ${item.type === "weapon" ? "무기" : item.type}</div>
+        <div>강화: +${enhanceLevel}강 / 최대 +99강</div>
+        <div>공격력 보너스: +${item.attackBonus || 0}${attackLimitText}</div>
+        <div>강화 비용: ${enhanceCost}골드</div>
+        <div>판매 가격: ${item.sellGold || 0}골드</div>
+        <div class="${equipped ? "owned" : "small-text"}">${equipped ? "현재 장착 중" : "미장착"}</div>
+
+        <div class="detail-actions">
+          <button class="equip-btn" onclick="equipItem('${item.instanceId}')">장착</button>
+          <button class="buy-btn" onclick="enhanceItem('${item.instanceId}')">강화</button>
+          <button class="danger-btn" onclick="sellItem('${item.instanceId}')">판매</button>
+        </div>
+      `;
+    }
+
+    window.selectInventoryItem = function(instanceId) {
+      selectedInventoryItemId = instanceId;
+      renderInventory();
+    };
+
+    window.setInventoryFilter = function(rarity) {
+      inventoryFilter = rarity;
+      renderInventory();
+    };
+
+    window.sortInventory = async function() {
+      const rarityScore = {
+        ancient: 7,
+        mythic: 6,
+        legendary: 5,
+        epic: 4,
+        rare: 3,
+        common: 2
+      };
+
+      gameData.inventory.sort((a, b) => {
+        const rarityDiff = (rarityScore[b.rarity] || 0) - (rarityScore[a.rarity] || 0);
+        if (rarityDiff !== 0) return rarityDiff;
+
+        const attackDiff = Number(b.attackBonus || 0) - Number(a.attackBonus || 0);
+        if (attackDiff !== 0) return attackDiff;
+
+        return String(a.name).localeCompare(String(b.name), "ko");
+      });
+
+      showMessage("인벤토리를 등급/공격력 순으로 정렬했습니다.");
+      renderInventory();
+      await saveUserData();
+    };
 
     window.equipItem = async function(instanceId) {
       const item = gameData.inventory.find(target => target.instanceId === instanceId);
@@ -1104,6 +1591,10 @@
       }
 
       const item = gameData.inventory[itemIndex];
+
+      if (selectedInventoryItemId === item.instanceId) {
+        selectedInventoryItemId = "";
+      }
 
       if (gameData.equippedWeaponId === item.instanceId) {
         gameData.equippedWeaponId = "";
@@ -1720,6 +2211,27 @@
       );
 
       showAdminMessage("정지/밴을 해제했습니다.");
+    };
+
+    window.goSection = function(sectionId) {
+      const section = document.getElementById(sectionId);
+
+      if (!section) {
+        showMessage("해당 메뉴를 찾을 수 없습니다.");
+        return;
+      }
+
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    };
+
+    window.goTop = function() {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
     };
 
     window.signUp = async function() {
