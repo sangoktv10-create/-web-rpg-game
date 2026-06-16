@@ -211,7 +211,7 @@
       border: 1px solid rgba(96, 165, 250, 0.2);
     }
 
-    #gameBox, #banBox { display: none; }
+    #gameBox, #banBox, #adminBox { display: none; }
 
     .menu-bar {
       position: sticky;
@@ -376,7 +376,7 @@
 
   <div class="container">
     <h1>Web RPG</h1>
-    <p class="small-text">버전: <span id="gameVersion">1.0.0</span></p>
+    <p class="small-text">버전: <span id="gameVersion">1.0.3</span></p>
 
     <div id="loginBox" class="box">
       <h2>로그인</h2>
@@ -447,7 +447,7 @@
 
       <div id="inventorySection" class="box">
         <h2>인벤토리</h2>
-        <p class="small-text">아이템 칸을 눌러 선택하고, 상세창에서 장착/강화/판매를 할 수 있습니다. 몬스터 처치 시 확률에 따라 무기가 드랍됩니다.</p>
+        <p class="small-text">아이템 칸을 눌러 선택하고, 상세창에서 장착/강화/판매를 할 수 있습니다. 모든 몬스터 처치 시 일반 등급 검은 50% 확률로 드랍됩니다.</p>
 
         <div class="inventory-top">
           <div class="equipment-panel">
@@ -524,7 +524,7 @@
         <p id="adminStatus" class="small-text">관리자 권한 확인 중...</p>
         <p class="small-text">관리자 기능이 작동하려면 Firestore의 내 users 문서에서 isAdmin 값이 true여야 합니다.</p>
 
-        <p class="small-text">패널은 항상 보이지만, 실제 지급/회수/밴 기능은 isAdmin이 true일 때만 실행됩니다.</p>
+        <p class="small-text">이 패널은 isAdmin이 true인 관리자 계정에게만 보입니다.</p>
         <input id="adminTargetId" placeholder="상대방 유저 ID 예: LB-123456">
         <button class="admin-btn" onclick="adminSearchUser()">유저 검색</button>
 
@@ -610,7 +610,7 @@
     let currentUser = null;
     let adminTarget = null;
 
-    const GAME_VERSION = "1.0.0";
+    const GAME_VERSION = "1.0.3";
 
     const titleShopItems = [
       { name: "슬라임 사냥꾼", cost: 30, desc: "슬라임을 잡는 모험가에게 어울리는 칭호" },
@@ -1092,23 +1092,62 @@
       return 10 + enhanceLevel * 5;
     }
 
-    function rollDropItem(isBoss = false) {
+    function getRandomAvailableItemByRarity(rarity) {
       const floor = Number(gameData.floor || 1);
-      const availableItems = itemPool.filter(item => floor >= Number(item.minFloor || 1));
+      const items = itemPool.filter(item => {
+        if (item.rarity !== rarity) return false;
 
-      if (availableItems.length === 0) {
+        // 일반 등급은 어떤 몬스터를 잡아도 50% 확률로 나와야 하므로 층 제한을 걸지 않습니다.
+        if (rarity === "common") return true;
+
+        return floor >= Number(item.minFloor || 1);
+      });
+
+      if (items.length === 0) {
         return null;
       }
 
+      return items[Math.floor(Math.random() * items.length)];
+    }
+
+    function rollDropItem(isBoss = false) {
       const roll = Math.random() * 100;
-      let currentChance = 0;
 
-      for (const item of availableItems) {
-        currentChance += Number(item.dropChance || 0);
+      // 모든 몬스터 공통: 일반 등급 검 50%
+      if (roll < 50) {
+        const commonItem = getRandomAvailableItemByRarity("common");
+        return commonItem ? createItem(commonItem) : null;
+      }
 
-        if (roll < currentChance) {
-          return createItem(item);
-        }
+      // 나머지 확률은 상위 검 드랍용
+      if (roll < 70) {
+        const rareItem = getRandomAvailableItemByRarity("rare");
+        return rareItem ? createItem(rareItem) : null;
+      }
+
+      if (roll < 80) {
+        const epicItems = itemPool.filter(item => item.id === "diamond_sword");
+        return epicItems.length > 0 ? createItem(epicItems[0]) : null;
+      }
+
+      if (roll < 87.5) {
+        const emeraldItem = itemPool.find(item => item.id === "emerald_sword");
+        return emeraldItem ? createItem(emeraldItem) : null;
+      }
+
+      if (roll < 92.5) {
+        const netherItem = itemPool.find(item => item.id === "nether_sword");
+        return netherItem ? createItem(netherItem) : null;
+      }
+
+      if (roll < 95.6) {
+        const lightItem = itemPool.find(item => item.id === "light_sword");
+        return lightItem ? createItem(lightItem) : null;
+      }
+
+      if (roll < 95.7) {
+        const redLightItem = itemPool.find(item => item.id === "red_light_sword");
+        return redLightItem ? createItem(redLightItem) : null;
       }
 
       return null;
@@ -1240,18 +1279,16 @@
       renderInventory();
       renderAchievements();
 
-      document.getElementById("adminBox").style.display = "block";
+      document.getElementById("adminBox").style.display = gameData.isAdmin ? "block" : "none";
 
       const adminStatus = document.getElementById("adminStatus");
       if (adminStatus) {
-        adminStatus.innerText = gameData.isAdmin
-          ? "관리자 권한 활성화됨: 관리자 기능을 사용할 수 있습니다."
-          : "관리자 권한 없음: Firestore에서 isAdmin을 true로 바꾸면 기능이 작동합니다.";
+        adminStatus.innerText = "관리자 권한 활성화됨: 관리자 기능을 사용할 수 있습니다.";
       }
 
       const adminMenuButton = document.getElementById("adminMenuButton");
       if (adminMenuButton) {
-        adminMenuButton.style.display = "inline-block";
+        adminMenuButton.style.display = gameData.isAdmin ? "inline-block" : "none";
       }
     }
 
@@ -2254,6 +2291,11 @@
     };
 
     window.openAdminPanel = function() {
+      if (!gameData || !gameData.isAdmin) {
+        showMessage("관리자 계정만 관리자 패널을 볼 수 있습니다.");
+        return;
+      }
+
       const adminBox = document.getElementById("adminBox");
 
       if (!adminBox) {
@@ -2268,7 +2310,7 @@
         block: "start"
       });
 
-      showMessage("관리자 패널로 이동했습니다. 권한이 없으면 Firestore에서 isAdmin을 true로 설정하세요.");
+      showMessage("관리자 패널로 이동했습니다.");
     };
 
     window.signUp = async function() {
@@ -2340,13 +2382,13 @@
         }
 
         if (droppedItem) {
-          gameData.inventory.push(droppedItem);
+          gameData.inventory.unshift(droppedItem);
           selectedInventoryItemId = droppedItem.instanceId;
           inventoryFilter = "all";
           addMail("아이템 획득", `${getItemDisplayName(droppedItem)}을 획득했습니다.`);
           rewardText += `, 아이템 [${getItemDisplayName(droppedItem)}] 획득`;
         } else {
-          rewardText += ", 아이템 드랍 없음";
+          rewardText += ", 아이템 드랍 실패";
         }
 
         moveNextFloor();
