@@ -376,7 +376,7 @@
 
   <div class="container">
     <h1>Web RPG</h1>
-    <p class="small-text">버전: <span id="gameVersion">1.0.3</span></p>
+    <p class="small-text">버전: <span id="gameVersion">1.0.4</span></p>
 
     <div id="loginBox" class="box">
       <h2>로그인</h2>
@@ -436,6 +436,7 @@
         <p>층: <span id="floor">1</span>층</p>
         <p id="bossLabel" class="boss-text"></p>
         <p>체력: <span id="monsterHp">10</span></p>
+        <p class="small-text">드랍 결과: <span id="dropResult">아직 드랍 판정이 없습니다.</span></p>
         <button onclick="attackMonster()">공격하기</button>
       </div>
 
@@ -447,7 +448,7 @@
 
       <div id="inventorySection" class="box">
         <h2>인벤토리</h2>
-        <p class="small-text">아이템 칸을 눌러 선택하고, 상세창에서 장착/강화/판매를 할 수 있습니다. 모든 몬스터 처치 시 일반 등급 검은 50% 확률로 드랍됩니다.</p>
+        <p class="small-text">아이템 칸을 눌러 선택하고, 상세창에서 장착/강화/판매를 할 수 있습니다. 모든 몬스터 처치 시 일반 등급 검은 50% 확률로 드랍됩니다. 검이 드랍되면 자동으로 이 선택창에 표시됩니다.</p>
 
         <div class="inventory-top">
           <div class="equipment-panel">
@@ -610,7 +611,7 @@
     let currentUser = null;
     let adminTarget = null;
 
-    const GAME_VERSION = "1.0.3";
+    const GAME_VERSION = "1.0.4";
 
     const titleShopItems = [
       { name: "슬라임 사냥꾼", cost: 30, desc: "슬라임을 잡는 모험가에게 어울리는 칭호" },
@@ -1097,7 +1098,7 @@
       const items = itemPool.filter(item => {
         if (item.rarity !== rarity) return false;
 
-        // 일반 등급은 어떤 몬스터를 잡아도 50% 확률로 나와야 하므로 층 제한을 걸지 않습니다.
+        // 일반 등급 검은 모든 몬스터에게서 50% 확률로 나와야 하므로 층 제한 없음
         if (rarity === "common") return true;
 
         return floor >= Number(item.minFloor || 1);
@@ -1110,46 +1111,70 @@
       return items[Math.floor(Math.random() * items.length)];
     }
 
+    function getItemById(itemId) {
+      return itemPool.find(item => item.id === itemId) || null;
+    }
+
     function rollDropItem(isBoss = false) {
       const roll = Math.random() * 100;
+      const rollText = roll.toFixed(1);
 
-      // 모든 몬스터 공통: 일반 등급 검 50%
+      // 0.0 ~ 49.9: 일반 검 50%
       if (roll < 50) {
         const commonItem = getRandomAvailableItemByRarity("common");
-        return commonItem ? createItem(commonItem) : null;
+
+        if (commonItem) {
+          lastDropResult = `${rollText}% → 일반 등급 검 드랍 성공`;
+          return createItem(commonItem);
+        }
+
+        lastDropResult = `${rollText}% → 일반 등급 검 목록을 찾지 못했습니다.`;
+        return null;
       }
 
-      // 나머지 확률은 상위 검 드랍용
+      // 50.0 ~ 69.9: 철검 20%
       if (roll < 70) {
-        const rareItem = getRandomAvailableItemByRarity("rare");
-        return rareItem ? createItem(rareItem) : null;
+        const item = getItemById("iron_sword");
+        lastDropResult = `${rollText}% → 철검 드랍 성공`;
+        return item ? createItem(item) : null;
       }
 
+      // 70.0 ~ 79.9: 다이아검 10%
       if (roll < 80) {
-        const epicItems = itemPool.filter(item => item.id === "diamond_sword");
-        return epicItems.length > 0 ? createItem(epicItems[0]) : null;
+        const item = getItemById("diamond_sword");
+        lastDropResult = `${rollText}% → 다이아검 드랍 성공`;
+        return item ? createItem(item) : null;
       }
 
+      // 80.0 ~ 87.4: 에메랄드검 7.5%
       if (roll < 87.5) {
-        const emeraldItem = itemPool.find(item => item.id === "emerald_sword");
-        return emeraldItem ? createItem(emeraldItem) : null;
+        const item = getItemById("emerald_sword");
+        lastDropResult = `${rollText}% → 에메랄드검 드랍 성공`;
+        return item ? createItem(item) : null;
       }
 
+      // 87.5 ~ 92.4: 네더검 5%
       if (roll < 92.5) {
-        const netherItem = itemPool.find(item => item.id === "nether_sword");
-        return netherItem ? createItem(netherItem) : null;
+        const item = getItemById("nether_sword");
+        lastDropResult = `${rollText}% → 네더검 드랍 성공`;
+        return item ? createItem(item) : null;
       }
 
+      // 92.5 ~ 95.5: 라이트검 3.1%
       if (roll < 95.6) {
-        const lightItem = itemPool.find(item => item.id === "light_sword");
-        return lightItem ? createItem(lightItem) : null;
+        const item = getItemById("light_sword");
+        lastDropResult = `${rollText}% → 라이트검 드랍 성공`;
+        return item ? createItem(item) : null;
       }
 
+      // 95.6 ~ 95.7: 붉은빛검 0.1%
       if (roll < 95.7) {
-        const redLightItem = itemPool.find(item => item.id === "red_light_sword");
-        return redLightItem ? createItem(redLightItem) : null;
+        const item = getItemById("red_light_sword");
+        lastDropResult = `${rollText}% → 붉은빛검 드랍 성공`;
+        return item ? createItem(item) : null;
       }
 
+      lastDropResult = `${rollText}% → 드랍 실패`;
       return null;
     }
 
@@ -1270,6 +1295,11 @@
       document.getElementById("floor").innerText = gameData.floor || 1;
       document.getElementById("monsterName").innerText = getMonsterName();
       document.getElementById("bossLabel").innerText = isBossFloor() ? "⚠️ 보스 층입니다!" : "";
+
+      const dropResult = document.getElementById("dropResult");
+      if (dropResult) {
+        dropResult.innerText = lastDropResult;
+      }
 
       renderMails();
       renderTitleShop();
@@ -1471,13 +1501,18 @@
         inventoryTotalAttack.innerText = getTotalAttack();
       }
 
-      const items = Array.isArray(gameData.inventory) ? gameData.inventory : [];
-
-      if (items.length === 0) {
-        inventoryList.innerHTML = "<p>아이템이 없습니다.</p>";
-        renderItemDetail(null);
-        return;
+      if (!Array.isArray(gameData.inventory)) {
+        gameData.inventory = [];
       }
+
+      if (gameData.inventory.length === 0) {
+        const starterInventory = createStarterInventory();
+        gameData.inventory = starterInventory.inventory;
+        gameData.equippedWeaponId = starterInventory.equippedWeaponId;
+        selectedInventoryItemId = starterInventory.equippedWeaponId;
+      }
+
+      const items = gameData.inventory;
 
       if (!selectedInventoryItemId || !items.some(item => item.instanceId === selectedInventoryItemId)) {
         selectedInventoryItemId = gameData.equippedWeaponId || items[0].instanceId;
@@ -2394,6 +2429,13 @@
         moveNextFloor();
 
         showMessage(rewardText + ` / ${gameData.floor}층으로 이동했습니다.`);
+
+        if (droppedItem) {
+          setTimeout(() => {
+            updateUI();
+            goSection("inventorySection");
+          }, 250);
+        }
 
         checkLevelUp();
         checkAchievements();
