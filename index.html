@@ -170,6 +170,14 @@
     .item-rare { border-color: rgba(96, 165, 250, 0.75); }
     .item-epic { border-color: rgba(168, 85, 247, 0.85); }
     .item-legendary { border-color: rgba(250, 204, 21, 0.95); }
+    .item-mythic { border-color: rgba(34, 211, 238, 0.95); }
+    .item-ancient { border-color: rgba(248, 113, 113, 0.95); }
+
+    .boss-text {
+      color: #f87171;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(248, 113, 113, 0.65);
+    }
 
     .shop-title, .mail-title, .achievement-title, .rank-title, .admin-title {
       color: #facc15;
@@ -256,7 +264,9 @@
       </div>
 
       <div class="box">
-        <h2>슬라임</h2>
+        <h2 id="monsterName">슬라임</h2>
+        <p>층: <span id="floor">1</span>층</p>
+        <p id="bossLabel" class="boss-text"></p>
         <p>체력: <span id="monsterHp">10</span></p>
         <button onclick="attackMonster()">공격하기</button>
       </div>
@@ -269,7 +279,7 @@
       <div class="box">
         <h2>인벤토리</h2>
         <p>장착 무기: <span id="equippedWeapon">없음</span></p>
-        <p class="small-text">기본 아이템은 나무 검이며, 몬스터를 처치하면 일정 확률로 장비 아이템이 드랍됩니다.</p>
+        <p class="small-text">기본 아이템은 나무 검이며, 층을 올라가면서 더 강한 검과 보스를 만날 수 있습니다. 관리자는 모든 검을 자동 보유합니다.</p>
         <div id="inventoryList">
           <p>아이템이 없습니다.</p>
         </div>
@@ -432,7 +442,8 @@
         attackBonus: 1,
         maxAttack: 10,
         sellGold: 5,
-        dropChance: 45
+        dropChance: 50,
+        minFloor: 1
       },
       {
         id: "iron_sword",
@@ -440,30 +451,83 @@
         icon: "⚔️",
         type: "weapon",
         rarity: "rare",
-        attackBonus: 3,
-        sellGold: 15,
-        dropChance: 25
+        attackBonus: 5,
+        sellGold: 20,
+        dropChance: 20,
+        minFloor: 3
       },
       {
-        id: "magic_sword",
-        name: "마법 검",
-        icon: "🪄",
+        id: "diamond_sword",
+        name: "다이아 검",
+        icon: "💎",
         type: "weapon",
         rarity: "epic",
-        attackBonus: 6,
-        sellGold: 40,
-        dropChance: 10
+        attackBonus: 12,
+        sellGold: 60,
+        dropChance: 10,
+        minFloor: 6
       },
       {
-        id: "dragon_blade",
-        name: "드래곤 블레이드",
-        icon: "🐉",
+        id: "emerald_sword",
+        name: "에메랄드 검",
+        icon: "💚",
+        type: "weapon",
+        rarity: "epic",
+        attackBonus: 18,
+        sellGold: 90,
+        dropChance: 7.5,
+        minFloor: 9
+      },
+      {
+        id: "nether_sword",
+        name: "네더 검",
+        icon: "🌋",
         type: "weapon",
         rarity: "legendary",
-        attackBonus: 12,
-        sellGold: 100,
-        dropChance: 3
+        attackBonus: 30,
+        sellGold: 160,
+        dropChance: 5,
+        minFloor: 13
+      },
+      {
+        id: "light_sword",
+        name: "라이트 검",
+        icon: "✨",
+        type: "weapon",
+        rarity: "mythic",
+        attackBonus: 45,
+        sellGold: 250,
+        dropChance: 3.1,
+        minFloor: 18
+      },
+      {
+        id: "red_light_sword",
+        name: "붉은빛 검",
+        icon: "🔴",
+        type: "weapon",
+        rarity: "ancient",
+        attackBonus: 70,
+        sellGold: 500,
+        dropChance: 0.1,
+        minFloor: 25
       }
+    ];
+
+    const normalMonsters = [
+      "슬라임",
+      "고블린",
+      "늑대",
+      "스켈레톤",
+      "오크",
+      "어둠의 기사"
+    ];
+
+    const bossMonsters = [
+      "슬라임 왕",
+      "고블린 장군",
+      "스켈레톤 로드",
+      "네더 골렘",
+      "붉은빛 드래곤"
     ];
 
     const achievementItems = [
@@ -483,6 +547,7 @@
       gem: 0,
       attack: 1,
       monsterHp: 10,
+      floor: 1,
       firstRewardReceived: false,
       lastDailyReward: 0,
       mails: [],
@@ -622,23 +687,66 @@
       return 10 + enhanceLevel * 5;
     }
 
-    function rollDropItem() {
-      const roll = Math.floor(Math.random() * 100) + 1;
-      let candidates = itemPool.filter(item => roll <= item.dropChance);
+    function rollDropItem(isBoss = false) {
+      const floor = Number(gameData.floor || 1);
+      const availableItems = itemPool.filter(item => floor >= Number(item.minFloor || 1));
 
-      if (candidates.length === 0) {
+      if (availableItems.length === 0) {
         return null;
       }
 
-      candidates.sort((a, b) => a.dropChance - b.dropChance);
-      return createItem(candidates[0]);
+      const roll = Math.random() * 100;
+      let currentChance = 0;
+
+      for (const item of availableItems) {
+        currentChance += Number(item.dropChance || 0);
+
+        if (roll < currentChance) {
+          return createItem(item);
+        }
+      }
+
+      return null;
     }
 
     function getRarityName(rarity) {
+      if (rarity === "ancient") return "고대";
+      if (rarity === "mythic") return "신화";
       if (rarity === "legendary") return "전설";
       if (rarity === "epic") return "영웅";
       if (rarity === "rare") return "희귀";
       return "일반";
+    }
+
+    function isBossFloor() {
+      return Number(gameData.floor || 1) % 10 === 0;
+    }
+
+    function getMonsterName() {
+      const floor = Number(gameData.floor || 1);
+
+      if (isBossFloor()) {
+        const bossIndex = Math.floor(floor / 10 - 1) % bossMonsters.length;
+        return bossMonsters[bossIndex];
+      }
+
+      const monsterIndex = (floor - 1) % normalMonsters.length;
+      return normalMonsters[monsterIndex];
+    }
+
+    function getMonsterMaxHp() {
+      const floor = Number(gameData.floor || 1);
+
+      if (isBossFloor()) {
+        return 80 + floor * 18 + gameData.level * 10;
+      }
+
+      return 10 + floor * 7 + gameData.level * 4;
+    }
+
+    function moveNextFloor() {
+      gameData.floor = Number(gameData.floor || 1) + 1;
+      gameData.monsterHp = getMonsterMaxHp();
     }
 
     function getNeedXp() {
@@ -675,6 +783,29 @@
       return "현재 계정은 이용이 제한되었습니다.";
     }
 
+    function giveAdminAllSwords() {
+      if (!gameData.isAdmin) return;
+
+      if (!Array.isArray(gameData.inventory)) {
+        gameData.inventory = [];
+      }
+
+      let addedCount = 0;
+
+      itemPool.forEach(baseItem => {
+        const alreadyHasItem = gameData.inventory.some(item => item.id === baseItem.id);
+
+        if (!alreadyHasItem) {
+          gameData.inventory.push(createItem(baseItem));
+          addedCount++;
+        }
+      });
+
+      if (addedCount > 0) {
+        addMail("관리자 지급", `관리자 권한으로 모든 검 ${addedCount}개가 인벤토리에 지급되었습니다.`);
+      }
+    }
+
     function updateUI() {
       document.getElementById("profileEmoji").innerText = gameData.profileEmoji;
       document.getElementById("nickname").innerText = gameData.nickname;
@@ -687,6 +818,9 @@
       document.getElementById("gem").innerText = gameData.gem;
       document.getElementById("attack").innerText = getTotalAttack();
       document.getElementById("monsterHp").innerText = gameData.monsterHp;
+      document.getElementById("floor").innerText = gameData.floor || 1;
+      document.getElementById("monsterName").innerText = getMonsterName();
+      document.getElementById("bossLabel").innerText = isBossFloor() ? "⚠️ 보스 층입니다!" : "";
 
       renderMails();
       renderTitleShop();
@@ -780,6 +914,7 @@
 
       showMessage(`우편 보상으로 ${reward}보석을 받았습니다.`);
 
+      giveAdminAllSwords();
       checkAchievements();
       updateUI();
       await saveUserData();
@@ -1046,6 +1181,7 @@
         gem: gameData.gem,
         attack: gameData.attack,
         monsterHp: gameData.monsterHp,
+        floor: gameData.floor || 1,
         firstRewardReceived: gameData.firstRewardReceived,
         lastDailyReward: gameData.lastDailyReward,
         mails: gameData.mails,
@@ -1080,6 +1216,7 @@
           gem: data.gem || 0,
           attack: data.attack || 1,
           monsterHp: data.monsterHp || 10,
+          floor: data.floor || 1,
           firstRewardReceived: data.firstRewardReceived || false,
           lastDailyReward: data.lastDailyReward || 0,
           mails: data.mails || [],
@@ -1109,7 +1246,8 @@
           gold: 0,
           gem: 0,
           attack: 1,
-          monsterHp: 10,
+          monsterHp: 21,
+          floor: 1,
           firstRewardReceived: false,
           lastDailyReward: 0,
           mails: [],
@@ -1627,27 +1765,45 @@
     };
 
     window.attackMonster = async function() {
-      gameData.monsterHp -= getTotalAttack();
+      const damage = getTotalAttack();
+      const defeatedMonsterName = getMonsterName();
+      const boss = isBossFloor();
+      const currentFloor = Number(gameData.floor || 1);
+
+      gameData.monsterHp -= damage;
 
       if (gameData.monsterHp <= 0) {
-        gameData.gold += 5;
-        gameData.xp += 10;
-        gameData.monsterHp = 10 + gameData.level * 5;
+        const goldReward = boss ? 50 + currentFloor * 5 : 5 + currentFloor;
+        const xpReward = boss ? 50 + currentFloor * 3 : 10 + currentFloor;
+        const gemReward = boss ? 5 : 0;
 
-        const droppedItem = rollDropItem();
+        gameData.gold += goldReward;
+        gameData.xp += xpReward;
+        gameData.gem += gemReward;
+
+        const droppedItem = rollDropItem(boss);
+
+        let rewardText = `${defeatedMonsterName} 처치! 골드 +${goldReward}, XP +${xpReward}`;
+
+        if (gemReward > 0) {
+          rewardText += `, 보석 +${gemReward}`;
+          addMail("보스 클리어 보상", `${currentFloor}층 보스를 처치하여 보석 ${gemReward}개를 받았습니다.`);
+        }
 
         if (droppedItem) {
           gameData.inventory.push(droppedItem);
           addMail("아이템 획득", `${getItemDisplayName(droppedItem)}을 획득했습니다.`);
-          showMessage(`슬라임 처치! 골드 +5, XP +10, 아이템 [${getItemDisplayName(droppedItem)}] 획득!`);
-        } else {
-          showMessage("슬라임을 처치했습니다! 골드 +5, XP +10");
+          rewardText += `, 아이템 [${getItemDisplayName(droppedItem)}] 획득`;
         }
+
+        moveNextFloor();
+
+        showMessage(rewardText + ` / ${gameData.floor}층으로 이동했습니다.`);
 
         checkLevelUp();
         checkAchievements();
       } else {
-        showMessage(`슬라임을 공격했습니다! 피해량: ${getTotalAttack()}`);
+        showMessage(`${defeatedMonsterName}을 공격했습니다! 피해량: ${damage}`);
       }
 
       updateUI();
