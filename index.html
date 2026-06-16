@@ -5,313 +5,229 @@
   <title>Web RPG Game</title>
 
   <style>
-  * {
-  box-sizing: border-box;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  overflow-x: hidden;
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.35), transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(168, 85, 247, 0.35), transparent 28%),
+        linear-gradient(135deg, #020617, #0f172a 45%, #111827);
+      overflow-x: hidden;
+    }
 
-  background:
-    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.35), transparent 30%),
-    radial-gradient(circle at 80% 10%, rgba(168, 85, 247, 0.35), transparent 28%),
-    radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.22), transparent 35%),
-    linear-gradient(135deg, #020617, #0f172a 45%, #111827);
-}
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(white 1px, transparent 1px),
+        radial-gradient(white 1px, transparent 1px);
+      background-size: 80px 80px, 140px 140px;
+      background-position: 0 0, 40px 60px;
+      opacity: 0.12;
+      pointer-events: none;
+      animation: starsMove 25s linear infinite;
+    }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image:
-    radial-gradient(white 1px, transparent 1px),
-    radial-gradient(white 1px, transparent 1px);
-  background-size: 80px 80px, 140px 140px;
-  background-position: 0 0, 40px 60px;
-  opacity: 0.12;
-  pointer-events: none;
-  animation: starsMove 25s linear infinite;
-}
-
-@keyframes starsMove {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(80px);
-  }
-}
-
-.container {
-  position: relative;
-  width: 92%;
-  max-width: 560px;
-  margin: 35px auto;
-  padding: 24px;
-  border-radius: 24px;
-
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(96, 165, 250, 0.35);
-  box-shadow:
-    0 0 25px rgba(37, 99, 235, 0.35),
-    0 0 60px rgba(168, 85, 247, 0.22),
-    inset 0 0 20px rgba(255, 255, 255, 0.04);
-
-  backdrop-filter: blur(8px);
-}
-
-.container::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: 26px;
-  background: linear-gradient(135deg, #60a5fa, #a855f7, #22c55e, #60a5fa);
-  z-index: -1;
-  opacity: 0.55;
-  filter: blur(10px);
-}
-
-h1 {
-  margin-top: 8px;
-  margin-bottom: 22px;
-  color: #93c5fd;
-  font-size: 34px;
-  letter-spacing: 3px;
-  text-shadow:
-    0 0 8px rgba(96, 165, 250, 0.9),
-    0 0 18px rgba(96, 165, 250, 0.7),
-    0 0 35px rgba(168, 85, 247, 0.5);
-}
-
-h1::before {
-  content: "⚔️ ";
-}
-
-h1::after {
-  content: " 💎";
-}
-
-h2 {
-  margin-top: 4px;
-  color: #e0f2fe;
-  text-shadow: 0 0 10px rgba(125, 211, 252, 0.45);
-}
-
-.box {
-  position: relative;
-  background:
-    linear-gradient(180deg, rgba(51, 65, 85, 0.95), rgba(30, 41, 59, 0.95));
-  margin-top: 16px;
-  padding: 18px;
-  border-radius: 18px;
-
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  box-shadow:
-    0 8px 18px rgba(0, 0, 0, 0.35),
-    inset 0 0 16px rgba(255, 255, 255, 0.04);
-}
-
-.box::before {
-  content: "";
-  position: absolute;
-  left: 15px;
-  right: 15px;
-  top: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.8), transparent);
-}
-
-#loginBox {
-  border: 1px solid rgba(96, 165, 250, 0.45);
-}
-
-#gameBox .box:first-child {
-  border: 1px solid rgba(34, 197, 94, 0.45);
-}
-
-input {
-  width: 88%;
-  padding: 13px 14px;
-  margin: 7px;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  font-size: 15px;
-
-  color: white;
-  background: rgba(15, 23, 42, 0.92);
-  outline: none;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.35);
-}
-
-input::placeholder {
-  color: #94a3b8;
-}
-
-input:focus {
-  border-color: #60a5fa;
-  box-shadow:
-    0 0 0 3px rgba(96, 165, 250, 0.2),
-    0 0 18px rgba(96, 165, 250, 0.35);
-}
-
-button {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  color: white;
-  border: none;
-  padding: 13px 19px;
-  border-radius: 13px;
-  font-size: 15px;
-  margin: 6px;
-  cursor: pointer;
-
-  border-bottom: 3px solid rgba(0, 0, 0, 0.3);
-  box-shadow:
-    0 0 14px rgba(37, 99, 235, 0.45),
-    0 7px 14px rgba(0, 0, 0, 0.35);
-
-  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
-}
-
-button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -80%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-  transform: skewX(-20deg);
-}
-
-button:hover::before {
-  animation: shine 0.7s ease;
-}
-
-@keyframes shine {
-  from {
-    left: -80%;
-  }
-  to {
-    left: 130%;
-  }
-}
-
-button:hover {
-  filter: brightness(1.15);
-  box-shadow:
-    0 0 20px rgba(96, 165, 250, 0.65),
-    0 9px 18px rgba(0, 0, 0, 0.4);
-}
-
-button:active {
-  transform: scale(0.96);
-}
-
-.logout {
-  background: linear-gradient(135deg, #dc2626, #991b1b);
-  box-shadow:
-    0 0 14px rgba(220, 38, 38, 0.5),
-    0 7px 14px rgba(0, 0, 0, 0.35);
-}
-
-p {
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-span {
-  color: #facc15;
-  font-weight: bold;
-  text-shadow: 0 0 8px rgba(250, 204, 21, 0.45);
-}
-
-#loginMessage,
-#message {
-  margin-top: 16px;
-  color: #dbeafe;
-  background: rgba(15, 23, 42, 0.6);
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(96, 165, 250, 0.2);
-}
-
-@media (max-width: 480px) {
-  .container {
-    width: 94%;
-    margin: 20px auto;
-    padding: 18px;
-  }
-
-  h1 {
-    font-size: 27px;
-  }
-
-  button {
-    width: 85%;
-  }
-
-  input {
-    width: 92%;
-  }
-}
+    @keyframes starsMove {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(80px);
+      }
+    }
 
     .container {
-      width: 90%;
-      max-width: 520px;
-      margin: 30px auto;
-      padding: 20px;
-      background: #1f2937;
-      border-radius: 15px;
+      position: relative;
+      width: 92%;
+      max-width: 620px;
+      margin: 35px auto;
+      padding: 24px;
+      border-radius: 24px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+      box-shadow:
+        0 0 25px rgba(37, 99, 235, 0.35),
+        0 0 60px rgba(168, 85, 247, 0.22),
+        inset 0 0 20px rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(8px);
+    }
+
+    .container::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, #60a5fa, #a855f7, #22c55e, #60a5fa);
+      z-index: -1;
+      opacity: 0.55;
+      filter: blur(10px);
     }
 
     h1 {
-      color: #60a5fa;
+      margin-top: 8px;
+      margin-bottom: 22px;
+      color: #93c5fd;
+      font-size: 34px;
+      letter-spacing: 3px;
+      text-shadow:
+        0 0 8px rgba(96, 165, 250, 0.9),
+        0 0 18px rgba(96, 165, 250, 0.7),
+        0 0 35px rgba(168, 85, 247, 0.5);
+    }
+
+    h1::before {
+      content: "⚔️ ";
+    }
+
+    h1::after {
+      content: " 💎";
+    }
+
+    h2 {
+      color: #e0f2fe;
+      text-shadow: 0 0 10px rgba(125, 211, 252, 0.45);
     }
 
     .box {
-      background: #374151;
-      margin-top: 15px;
-      padding: 15px;
-      border-radius: 12px;
+      position: relative;
+      background:
+        linear-gradient(180deg, rgba(51, 65, 85, 0.95), rgba(30, 41, 59, 0.95));
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.35),
+        inset 0 0 16px rgba(255, 255, 255, 0.04);
+    }
+
+    .box::before {
+      content: "";
+      position: absolute;
+      left: 15px;
+      right: 15px;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(147, 197, 253, 0.8), transparent);
     }
 
     input {
-      width: 85%;
-      padding: 12px;
-      margin: 6px;
-      border-radius: 8px;
-      border: none;
+      width: 88%;
+      padding: 13px 14px;
+      margin: 7px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
       font-size: 15px;
+      color: white;
+      background: rgba(15, 23, 42, 0.92);
+      outline: none;
+    }
+
+    input::placeholder {
+      color: #94a3b8;
+    }
+
+    input:focus {
+      border-color: #60a5fa;
+      box-shadow:
+        0 0 0 3px rgba(96, 165, 250, 0.2),
+        0 0 18px rgba(96, 165, 250, 0.35);
     }
 
     button {
-      background: #2563eb;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
       color: white;
       border: none;
-      padding: 12px 18px;
-      border-radius: 10px;
+      padding: 13px 19px;
+      border-radius: 13px;
       font-size: 15px;
-      margin: 5px;
+      margin: 6px;
+      cursor: pointer;
+      border-bottom: 3px solid rgba(0, 0, 0, 0.3);
+      box-shadow:
+        0 0 14px rgba(37, 99, 235, 0.45),
+        0 7px 14px rgba(0, 0, 0, 0.35);
     }
 
     button:active {
-      background: #1d4ed8;
-      transform: scale(0.97);
+      transform: scale(0.96);
     }
 
     .logout {
-      background: #dc2626;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+    }
+
+    .reward-btn {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+    }
+
+    .mail-card {
+      background: rgba(15, 23, 42, 0.72);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 12px;
+      border: 1px solid rgba(96, 165, 250, 0.25);
+      text-align: left;
+    }
+
+    .mail-title {
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    span {
+      color: #facc15;
+      font-weight: bold;
+      text-shadow: 0 0 8px rgba(250, 204, 21, 0.45);
+    }
+
+    #loginMessage,
+    #message,
+    #rewardMessage {
+      margin-top: 16px;
+      color: #dbeafe;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(96, 165, 250, 0.2);
     }
 
     #gameBox {
       display: none;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        width: 94%;
+        margin: 20px auto;
+        padding: 18px;
+      }
+
+      h1 {
+        font-size: 27px;
+      }
+
+      button {
+        width: 85%;
+      }
+
+      input {
+        width: 92%;
+      }
     }
   </style>
 </head>
@@ -337,9 +253,12 @@ span {
 
     <div id="gameBox">
       <div class="box">
+        <h2>프로필</h2>
         <p>닉네임: <span id="nickname">플레이어</span></p>
+        <p>유저 ID: <span id="publicId">LB-000000</span></p>
         <p>칭호: <span id="title">초보자</span></p>
         <p>레벨: <span id="level">1</span></p>
+        <p>XP: <span id="xp">0</span> / <span id="needXp">20</span></p>
         <p>골드: <span id="gold">0</span></p>
         <p>보석: <span id="gem">0</span></p>
         <p>공격력: <span id="attack">1</span></p>
@@ -357,6 +276,19 @@ span {
       </div>
 
       <div class="box">
+        <h2>일일보상</h2>
+        <button class="reward-btn" onclick="dailyReward()">일일보상 받기</button>
+        <p id="rewardMessage">첫 보상은 100보석, 이후 24시간마다 10보석입니다.</p>
+      </div>
+
+      <div class="box">
+        <h2>우편함</h2>
+        <div id="mailList">
+          <p>우편이 없습니다.</p>
+        </div>
+      </div>
+
+      <div class="box">
         <button class="logout" onclick="logout()">로그아웃</button>
         <p id="message">게임을 시작하세요!</p>
       </div>
@@ -369,7 +301,8 @@ span {
     import {
       getAuth,
       GoogleAuthProvider,
-      signInWithPopup,
+      signInWithRedirect,
+      getRedirectResult,
       createUserWithEmailAndPassword,
       signInWithEmailAndPassword,
       signOut,
@@ -384,7 +317,7 @@ span {
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-    // 여기 firebaseConfig 부분을 네가 복사한 코드로 바꾸면 됨
+    // 여기를 네 Firebase config로 바꿔
     const firebaseConfig = {
   apiKey: "AIzaSyD2bGpScCTe-ltMmDz6mPm1nGIU4ro8ksc",
   authDomain: "web-rpg-game-5e39d.firebaseapp.com",
@@ -402,23 +335,42 @@ span {
     let currentUser = null;
 
     let gameData = {
+      publicId: "",
       nickname: "플레이어",
       title: "초보자",
       level: 1,
+      xp: 0,
       gold: 0,
       gem: 0,
       attack: 1,
-      monsterHp: 10
+      monsterHp: 10,
+      firstRewardReceived: false,
+      lastDailyReward: 0,
+      mails: []
     };
+
+    function generatePublicId() {
+      const number = Math.floor(100000 + Math.random() * 900000);
+      return "LB-" + number;
+    }
+
+    function getNeedXp() {
+      return gameData.level * 20;
+    }
 
     function updateUI() {
       document.getElementById("nickname").innerText = gameData.nickname;
+      document.getElementById("publicId").innerText = gameData.publicId;
       document.getElementById("title").innerText = gameData.title;
       document.getElementById("level").innerText = gameData.level;
+      document.getElementById("xp").innerText = gameData.xp;
+      document.getElementById("needXp").innerText = getNeedXp();
       document.getElementById("gold").innerText = gameData.gold;
       document.getElementById("gem").innerText = gameData.gem;
       document.getElementById("attack").innerText = gameData.attack;
       document.getElementById("monsterHp").innerText = gameData.monsterHp;
+
+      renderMails();
     }
 
     function showMessage(text) {
@@ -429,19 +381,62 @@ span {
       document.getElementById("loginMessage").innerText = text;
     }
 
+    function showRewardMessage(text) {
+      document.getElementById("rewardMessage").innerText = text;
+    }
+
+    function addMail(title, message) {
+      const mail = {
+        id: String(Date.now()),
+        title: title,
+        message: message,
+        createdAt: new Date().toLocaleString()
+      };
+
+      gameData.mails.unshift(mail);
+
+      if (gameData.mails.length > 20) {
+        gameData.mails = gameData.mails.slice(0, 20);
+      }
+    }
+
+    function renderMails() {
+      const mailList = document.getElementById("mailList");
+
+      if (!gameData.mails || gameData.mails.length === 0) {
+        mailList.innerHTML = "<p>우편이 없습니다.</p>";
+        return;
+      }
+
+      mailList.innerHTML = gameData.mails.map(mail => {
+        return `
+          <div class="mail-card">
+            <div class="mail-title">${mail.title}</div>
+            <div>${mail.message}</div>
+            <small>${mail.createdAt}</small>
+          </div>
+        `;
+      }).join("");
+    }
+
     async function saveUserData() {
       if (!currentUser) return;
 
       const userRef = doc(db, "users", currentUser.uid);
 
       await setDoc(userRef, {
+        publicId: gameData.publicId,
         nickname: gameData.nickname,
         title: gameData.title,
         level: gameData.level,
+        xp: gameData.xp,
         gold: gameData.gold,
         gem: gameData.gem,
         attack: gameData.attack,
         monsterHp: gameData.monsterHp,
+        firstRewardReceived: gameData.firstRewardReceived,
+        lastDailyReward: gameData.lastDailyReward,
+        mails: gameData.mails,
         updatedAt: serverTimestamp()
       }, { merge: true });
     }
@@ -454,34 +449,60 @@ span {
         const data = userSnap.data();
 
         gameData = {
+          publicId: data.publicId || generatePublicId(),
           nickname: data.nickname || user.displayName || "플레이어",
           title: data.title || "초보자",
           level: data.level || 1,
+          xp: data.xp || 0,
           gold: data.gold || 0,
           gem: data.gem || 0,
           attack: data.attack || 1,
-          monsterHp: data.monsterHp || 10
+          monsterHp: data.monsterHp || 10,
+          firstRewardReceived: data.firstRewardReceived || false,
+          lastDailyReward: data.lastDailyReward || 0,
+          mails: data.mails || []
         };
       } else {
         gameData = {
+          publicId: generatePublicId(),
           nickname: user.displayName || "플레이어",
           title: "초보자",
           level: 1,
+          xp: 0,
           gold: 0,
           gem: 0,
           attack: 1,
-          monsterHp: 10
+          monsterHp: 10,
+          firstRewardReceived: false,
+          lastDailyReward: 0,
+          mails: []
         };
 
-        await setDoc(userRef, {
-          ...gameData,
-          email: user.email || "",
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
+        addMail("가입 환영", "서버에서 신규 유저 등록을 완료했습니다.");
       }
 
       updateUI();
+      await saveUserData();
+    }
+
+    function checkLevelUp() {
+      let needXp = getNeedXp();
+      let leveledUp = false;
+
+      while (gameData.xp >= needXp) {
+        gameData.xp -= needXp;
+        gameData.level += 1;
+        gameData.gem += 1;
+        leveledUp = true;
+
+        addMail("레벨업 보상", `레벨 ${gameData.level} 달성! 보석 1개를 받았습니다.`);
+
+        needXp = getNeedXp();
+      }
+
+      if (leveledUp) {
+        showMessage("레벨업! 보석 보상을 받았습니다.");
+      }
     }
 
     window.signUp = async function() {
@@ -510,12 +531,17 @@ span {
 
     window.loginGoogle = async function() {
       try {
-        await signInWithPopup(auth, googleProvider);
-        showLoginMessage("Google 로그인 성공!");
+        await signInWithRedirect(auth, googleProvider);
       } catch (error) {
         showLoginMessage("Google 로그인 실패: " + error.message);
       }
     };
+
+    getRedirectResult(auth).catch(function(error) {
+      if (error) {
+        showLoginMessage("Google 로그인 실패: " + error.message);
+      }
+    });
 
     window.logout = async function() {
       await signOut(auth);
@@ -526,10 +552,12 @@ span {
 
       if (gameData.monsterHp <= 0) {
         gameData.gold += 5;
-        gameData.level += 1;
+        gameData.xp += 10;
         gameData.monsterHp = 10 + gameData.level * 5;
 
-        showMessage("슬라임을 처치했습니다! 골드 +5");
+        showMessage("슬라임을 처치했습니다! 골드 +5, XP +10");
+
+        checkLevelUp();
       } else {
         showMessage("슬라임을 공격했습니다!");
       }
@@ -550,6 +578,43 @@ span {
 
       updateUI();
       await saveUserData();
+    };
+
+    window.dailyReward = async function() {
+      const now = Date.now();
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      if (!gameData.firstRewardReceived) {
+        gameData.gem += 100;
+        gameData.firstRewardReceived = true;
+        gameData.lastDailyReward = now;
+
+        addMail("첫 접속 보상", "서버에서 첫 접속 보상 100보석을 지급했습니다.");
+        showRewardMessage("첫 접속 보상으로 100보석을 받았습니다!");
+
+        updateUI();
+        await saveUserData();
+        return;
+      }
+
+      const passedTime = now - gameData.lastDailyReward;
+
+      if (passedTime >= oneDay) {
+        gameData.gem += 10;
+        gameData.lastDailyReward = now;
+
+        addMail("일일보상", "서버에서 일일보상 10보석을 지급했습니다.");
+        showRewardMessage("일일보상으로 10보석을 받았습니다!");
+
+        updateUI();
+        await saveUserData();
+      } else {
+        const remaining = oneDay - passedTime;
+        const hours = Math.floor(remaining / (60 * 60 * 1000));
+        const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+
+        showRewardMessage(`아직 받을 수 없습니다. 남은 시간: ${hours}시간 ${minutes}분`);
+      }
     };
 
     onAuthStateChanged(auth, async function(user) {
