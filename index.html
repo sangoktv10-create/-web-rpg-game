@@ -211,7 +211,7 @@
       border: 1px solid rgba(96, 165, 250, 0.2);
     }
 
-    #gameBox, #banBox, #adminBox { display: none; }
+    #gameBox, #banBox { display: none; }
 
     .menu-bar {
       position: sticky;
@@ -376,6 +376,7 @@
 
   <div class="container">
     <h1>Web RPG</h1>
+    <p class="small-text">버전: <span id="gameVersion">1.0.0</span></p>
 
     <div id="loginBox" class="box">
       <h2>로그인</h2>
@@ -402,7 +403,7 @@
       <div class="menu-bar">
         <button onclick="goSection('profileSection')">프로필</button>
         <button onclick="goSection('battleSection')">전투</button>
-        <button onclick="goSection('upgradeSection')">강화</button>
+        <button onclick="goSection('upgradeSection')">무기강화</button>
         <button onclick="goSection('inventorySection')">인벤토리</button>
         <button onclick="goSection('rewardSection')">일일보상</button>
         <button onclick="goSection('titleSection')">칭호</button>
@@ -410,7 +411,7 @@
         <button onclick="goSection('cosmeticSection')">꾸미기</button>
         <button onclick="goSection('rankingSection')">랭킹</button>
         <button onclick="goSection('mailSection')">우편함</button>
-        <button id="adminMenuButton" onclick="goSection('adminBox')">관리자</button>
+        <button id="adminMenuButton" onclick="openAdminPanel()">관리자</button>
       </div>
 
       <button class="top-btn" onclick="goTop()">▲</button>
@@ -523,6 +524,7 @@
         <p id="adminStatus" class="small-text">관리자 권한 확인 중...</p>
         <p class="small-text">관리자 기능이 작동하려면 Firestore의 내 users 문서에서 isAdmin 값이 true여야 합니다.</p>
 
+        <p class="small-text">패널은 항상 보이지만, 실제 지급/회수/밴 기능은 isAdmin이 true일 때만 실행됩니다.</p>
         <input id="adminTargetId" placeholder="상대방 유저 ID 예: LB-123456">
         <button class="admin-btn" onclick="adminSearchUser()">유저 검색</button>
 
@@ -607,6 +609,8 @@
 
     let currentUser = null;
     let adminTarget = null;
+
+    const GAME_VERSION = "1.0.0";
 
     const titleShopItems = [
       { name: "슬라임 사냥꾼", cost: 30, desc: "슬라임을 잡는 모험가에게 어울리는 칭호" },
@@ -1208,6 +1212,11 @@
     }
 
     function updateUI() {
+      const versionText = document.getElementById("gameVersion");
+      if (versionText) {
+        versionText.innerText = GAME_VERSION;
+      }
+
       document.getElementById("profileEmoji").innerText = gameData.profileEmoji;
       document.getElementById("nickname").innerText = gameData.nickname;
       document.getElementById("publicId").innerText = gameData.publicId;
@@ -2242,6 +2251,24 @@
         top: 0,
         behavior: "smooth"
       });
+    };
+
+    window.openAdminPanel = function() {
+      const adminBox = document.getElementById("adminBox");
+
+      if (!adminBox) {
+        showMessage("관리자 패널을 찾을 수 없습니다.");
+        return;
+      }
+
+      adminBox.style.display = "block";
+
+      adminBox.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+      showMessage("관리자 패널로 이동했습니다. 권한이 없으면 Firestore에서 isAdmin을 true로 설정하세요.");
     };
 
     window.signUp = async function() {
